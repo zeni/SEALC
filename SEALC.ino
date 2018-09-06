@@ -27,16 +27,16 @@
 #define COLUMN ':'
 // commands
 #define COMMAND_SELECT 0
-#define COMMAND_SPEED 1
-#define COMMAND_DIR 2
-#define COMMAND_ROTATE 3
-#define COMMAND_STOP 4
-#define COMMAND_MOVE 5
+#define COMMAND_SS 1
+#define COMMAND_SD 2
+#define COMMAND_RO 3
+#define COMMAND_ST 4
+#define COMMAND_RA 5
 #define COMMAND_NONE 6
-#define COMMAND_WAVE 7
-#define COMMAND_BEAT 8
+#define COMMAND_RW 7
+#define COMMAND_SQ 8
 #define COMMAND_ERROR 9
-#define COMMAND_ROTATEPAUSE 10
+#define COMMAND_RP 10
 
 // vars
 Motor *motors[N_MOTORS];
@@ -84,7 +84,6 @@ void processCommand(char a)
     }
     else
     {
-      currentCommand = COMMAND_NONE;
       updateValue(a);
     }
   }
@@ -105,10 +104,10 @@ void processCommand(char a)
       {
         switch (currentCommand)
         {
-        case COMMAND_BEAT:
+        case COMMAND_SQ:
           motors[selectedMotor]->columnSQ(currentValue);
           break;
-        case COMMAND_ROTATEPAUSE:
+        case COMMAND_RP:
           //motors[selectedMotor]->columnRP(currentValue);
           break;
         }
@@ -125,26 +124,26 @@ void processCommand(char a)
       }
       switch (currentCommand)
       {
-      case COMMAND_SPEED:
+      case COMMAND_SS:
         motors[selectedMotor]->SS(currentValue);
         break;
-      case COMMAND_DIR:
+      case COMMAND_SD:
         motors[selectedMotor]->SD(currentValue);
         break;
-      case COMMAND_ROTATE:
+      case COMMAND_RO:
         motors[selectedMotor]->setRO(currentValue);
         break;
-      case COMMAND_STOP:
+      case COMMAND_ST:
         motors[selectedMotor]->setNextMode(MODE_ST);
         motors[selectedMotor]->ST();
         break;
-      case COMMAND_MOVE:
+      case COMMAND_RA:
         motors[selectedMotor]->setRA(currentValue);
         break;
-      case COMMAND_WAVE:
+      case COMMAND_RW:
         motors[selectedMotor]->setRW(currentValue);
         break;
-      case COMMAND_BEAT:
+      case COMMAND_SQ:
         motors[selectedMotor]->setSQ(currentValue);
         break;
       case COMMAND_SELECT:
@@ -170,19 +169,20 @@ void processCommand(char a)
       {
       case 's':
       case 'S':
-        currentCommand = COMMAND_SPEED; //SS
+        currentCommand = COMMAND_SS; //SS
         break;
       case 'd':
       case 'D':
-        currentCommand = COMMAND_DIR; //SD
+        currentCommand = COMMAND_SD; //SD
         break;
       case 't':
       case 'T':
-        currentCommand = COMMAND_STOP; //ST
+        Serial.println("st");
+        currentCommand = COMMAND_ST; //ST
         break;
       case 'q':
       case 'Q':
-        currentCommand = COMMAND_BEAT; //SQ
+        currentCommand = COMMAND_SQ; //SQ
         motors[selectedMotor]->initSQ();
         break;
       }
@@ -193,19 +193,20 @@ void processCommand(char a)
       {
       case 'o':
       case 'O':
-        currentCommand = COMMAND_ROTATE; //RO
+        Serial.println("ro");
+        currentCommand = COMMAND_RO; //RO
         break;
       case 'W':
       case 'w':
-        currentCommand = COMMAND_WAVE; //RW
+        currentCommand = COMMAND_RW; //RW
         break;
       case 'a':
       case 'A':
-        currentCommand = COMMAND_MOVE; //RA
+        currentCommand = COMMAND_RA; //RA
         break;
       case 'p':
       case 'P':
-        currentCommand = COMMAND_ROTATEPAUSE; //RP
+        currentCommand = COMMAND_RP; //RP
         break;
       }
       break;
