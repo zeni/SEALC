@@ -1,12 +1,12 @@
 #define MAX_SEQ 10 // max length of sequence for beat
 //  modes
-#define MODE_STOP 0
-#define MODE_ROTATE 1
-#define MODE_MOVE 2
-#define MODE_WAVE 4
-#define MODE_BEAT 5
+#define MODE_ST 0
+#define MODE_RO 1
+#define MODE_RA 2
+#define MODE_RW 4
+#define MODE_SQ 5
 #define MODE_HOME 6
-#define MODE_DIR 7
+#define MODE_SD 7
 
 class Motor
 {
@@ -28,8 +28,8 @@ protected:
   bool newBeat;
 
   //common
-  virtual void move();
-  virtual void beat();
+  virtual void RA();
+  virtual void SQ();
   virtual void goHome();
   virtual void moveStep();
 
@@ -37,15 +37,16 @@ public:
   // common
   Motor();
   void initBeat();
-  void setSpeed(int v);
-  virtual void setRotate(int v);
-  virtual void setMove(int v);
-  virtual void setWave(int v);
-  void setBeat(int v);
-  void setInterBeat(int v);
-  virtual void stop();
+  void SS(int v);
+  virtual void setRO(int v);
+  virtual void setRA(int v);
+  virtual void setRW(int v);
+  void setSQ(int v);
+  void columnSQ(int v);
+  //void columnRP(int v);
+  virtual void ST();
   virtual void action();
-  virtual void setDir(int v);
+  virtual void SD(int v);
   virtual String getType();
   void setMode(int m);
   void setNextMode(int m);
@@ -53,9 +54,9 @@ public:
 
 Motor::Motor()
 {
-  mode = MODE_STOP;
+  mode = MODE_ST;
   nextMode = mode;
-  speed = 0;
+  speed = 12;
   currentSteps = 0;
   steps = 0;
   stepsHome = steps;
@@ -76,7 +77,7 @@ String Motor::getType()
   return "unknown";
 }
 
-void Motor::setDir(int v)
+void Motor::SD(int v)
 {
 }
 
@@ -90,7 +91,7 @@ void Motor::setNextMode(int m)
   nextMode = m;
 }
 
-void Motor::setSpeed(int v)
+void Motor::SS(int v)
 {
   if (v > 0)
     speed = floor(60.0 / (v * nSteps) * 1000);
@@ -112,7 +113,7 @@ void Motor::initBeat()
   newBeat = true;
 }
 
-void Motor::setInterBeat(int v)
+void Motor::columnSQ(int v)
 {
   if (v < 0)
     v = 0;
@@ -127,11 +128,11 @@ void Motor::setInterBeat(int v)
   }
 }
 
-void Motor::setRotate(int v)
+void Motor::setRO(int v)
 {
 }
 
-void Motor::stop()
+void Motor::ST()
 {
 }
 
@@ -140,15 +141,15 @@ void Motor::goHome()
 {
 }
 
-void Motor::setMove(int v)
+void Motor::setRA(int v)
 {
 }
 
-void Motor::setWave(int v)
+void Motor::setRW(int v)
 {
 }
 
-void Motor::setBeat(int v)
+void Motor::setSQ(int v)
 {
   Serial.print(">> beat pattern: ");
   currentDir = dir;
@@ -175,15 +176,15 @@ void Motor::setBeat(int v)
     Serial.print("|");
   }
   Serial.println();
-  if (mode == MODE_STOP)
+  if (mode == MODE_ST)
   {
-    mode = MODE_BEAT;
+    mode = MODE_SQ;
     timeMS = millis();
   }
   else
   {
-    nextMode = MODE_BEAT;
-    stop();
+    nextMode = MODE_SQ;
+    ST();
   }
 }
 
@@ -197,11 +198,11 @@ void Motor::moveStep()
 }
 
 // rotate a number of steps
-void Motor::move()
+void Motor::RA()
 {
 }
 
 // continuous hammer movement with pattern of angles
-void Motor::beat()
+void Motor::SQ()
 {
 }

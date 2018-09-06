@@ -1,12 +1,12 @@
 #define MAX_SEQ 10 // max length of sequence for beat
-// stepper modes
-#define MODE_STOP 0
-#define MODE_ROTATE 1
-#define MODE_MOVE 2
-#define MODE_WAVE 4
-#define MODE_BEAT 5
+//  modes
+#define MODE_ST 0
+#define MODE_RO 1
+#define MODE_RA 2
+#define MODE_RW 4
+#define MODE_SQ 5
 #define MODE_HOME 6
-#define MODE_DIR 7
+#define MODE_SD 7
 
 class Stepper : public Motor
 {
@@ -14,10 +14,10 @@ class Stepper : public Motor
   int waveDir; // increasing / decreasing speed
   int turns;   // for rotate (0=continuous rotation)
   int realSteps;
-  void rotate();
-  void move();
-  void beat();
-  void wave();
+  void RO();
+  void RA();
+  void SQ();
+  void RW();
   void goHome();
   void stepperStep();
   void moveStep();
@@ -25,11 +25,11 @@ class Stepper : public Motor
 public:
   Stepper();
   Stepper(int n, int stp, int dir);
-  void setDir(int v);
-  void setRotate(int v);
-  void setMove(int v);
-  void setWave(int v);
-  void stop();
+  void SD(int v);
+  void setRO(int v);
+  void setRA(int v);
+  void setRW(int v);
+  void ST();
   void action();
   String getType();
 };
@@ -54,13 +54,13 @@ String Stepper::getType()
   return " (stepper)";
 }
 
-void Stepper::setDir(int v)
+void Stepper::SD(int v)
 {
   if (v > 0)
     v = 1;
   switch (mode)
   {
-  case MODE_STOP:
+  case MODE_ST:
     if (v < 0)
       dir = 1 - dir;
     else
@@ -84,7 +84,7 @@ void Stepper::setDir(int v)
     Serial.println("CW");
 }
 
-void Stepper::setRotate(int v)
+void Stepper::setRO(int v)
 {
   Serial.print(">> rotate ");
   if (v <= 0)
@@ -96,24 +96,24 @@ void Stepper::setRotate(int v)
     Serial.println(String(v) + " turn(s)");
   turns = v;
   steps = turns * nSteps;
-  if (mode == MODE_STOP)
+  if (mode == MODE_ST)
   {
-    mode = MODE_ROTATE;
+    mode = MODE_RO;
     timeMS = millis();
   }
   else
   {
-    nextMode = MODE_ROTATE;
-    stop();
+    nextMode = MODE_RO;
+    ST();
   }
 }
 
-void Stepper::stop()
+void Stepper::ST()
 {
   Serial.println(">> stop");
   switch (mode)
   {
-  case MODE_BEAT:
+  case MODE_SQ:
   {
     int a = floor(indexSeq / 2);
     if (seq[a] > 0)
@@ -132,22 +132,22 @@ void Stepper::stop()
     else
     {
       currentSteps = 0;
-      mode = MODE_STOP;
-      stop();
+      mode = MODE_ST;
+      ST();
     }
     break;
   }
-  case MODE_MOVE:
+  case MODE_RA:
     mode = MODE_HOME;
     stepsHome = steps;
     timeMS = millis();
     break;
-  case MODE_ROTATE:
+  case MODE_RO:
     mode = MODE_HOME;
     stepsHome = nSteps;
     timeMS = millis();
     break;
-  case MODE_WAVE:
+  case MODE_RW:
     mode = MODE_HOME;
     currentSteps = realSteps;
     stepsHome = nSteps;
@@ -155,10 +155,10 @@ void Stepper::stop()
     break;
   default:
     mode = nextMode;
-    nextMode = MODE_STOP;
+    nextMode = MODE_ST;
     currentSteps = 0;
     digitalWrite(pinSTP, LOW);
-    setDir(dir);
+    SD(dir);
     break;
   }
 }
@@ -174,8 +174,8 @@ void Stepper::goHome()
     if (currentSteps >= stepsHome)
     {
       currentSteps = 0;
-      mode = MODE_STOP;
-      stop();
+      mode = MODE_ST;
+      ST();
     }
     else
     {
@@ -198,8 +198,8 @@ void Stepper::moveStep()
 {
   if (currentSteps >= steps)
   {
-    mode = MODE_STOP;
-    stop();
+    mode = MODE_ST;
+    ST();
   }
   else
   {
@@ -209,7 +209,7 @@ void Stepper::moveStep()
   }
 }
 
-void Stepper::setMove(int v)
+void Stepper::setRA(int v)
 {
   if (v < 0)
     v = 0;
@@ -219,19 +219,19 @@ void Stepper::setMove(int v)
   Serial.println(" degrees");
   steps = v / 360.0 * nSteps;
   currentSteps = 0;
-  if (mode == MODE_STOP)
+  if (mode == MODE_ST)
   {
-    mode = MODE_MOVE;
+    mode = MODE_RA;
     timeMS = millis();
   }
   else
   {
-    nextMode = MODE_MOVE;
-    Stepper::stop();
+    nextMode = MODE_RA;
+    Stepper::ST();
   }
 }
 
-void Stepper::setWave(int v)
+void Stepper::setRW(int v)
 {
   if (v <= 0)
     v = 1;
@@ -242,15 +242,15 @@ void Stepper::setWave(int v)
   currentSteps = 0;
   realSteps = currentSteps;
   waveDir = 0;
-  if (mode == MODE_STOP)
+  if (mode == MODE_ST)
   {
-    mode = MODE_WAVE;
+    mode = MODE_RW;
     timeMS = millis();
   }
   else
   {
-    nextMode = MODE_WAVE;
-    Stepper::stop();
+    nextMode = MODE_RW;
+    Stepper::ST();
   }
 }
 
@@ -258,19 +258,19 @@ void Stepper::action()
 {
   switch (mode)
   {
-  case MODE_STOP:
+  case MODE_ST:
     break;
-  case MODE_ROTATE:
-    rotate();
+  case MODE_RO:
+    RO();
     break;
-  case MODE_MOVE:
-    move();
+  case MODE_RA:
+    RA();
     break;
-  case MODE_WAVE:
-    wave();
+  case MODE_RW:
+    RW();
     break;
-  case MODE_BEAT:
-    beat();
+  case MODE_SQ:
+    SQ();
     break;
   case MODE_HOME:
     goHome();
@@ -279,7 +279,7 @@ void Stepper::action()
 }
 
 // rotation
-void Stepper::rotate()
+void Stepper::RO()
 {
   if (speed > 0)
   {
@@ -300,13 +300,13 @@ void Stepper::rotate()
   }
   else
   {
-    stop();
+    ST();
     Serial.println("Stopped: speed is 0.");
   }
 }
 
 // rotate a number of steps
-void Stepper::move()
+void Stepper::RA()
 {
   if (speed > 0)
   {
@@ -317,13 +317,13 @@ void Stepper::move()
   }
   else
   {
-    stop();
+    ST();
     Serial.println("Stopped: speed is 0.");
   }
 }
 
 // continuous wave movement (like rotate but with changing speed)
-void Stepper::wave()
+void Stepper::RW()
 {
   if (speed > 0)
   {
@@ -355,13 +355,13 @@ void Stepper::wave()
   }
   else
   {
-    stop();
+    ST();
     Serial.println("Stopped: speed is 0.");
   }
 }
 
 // continuous hammer movement with pattern of angles
-void Stepper::beat()
+void Stepper::SQ()
 {
   if (speed > 0)
   {
@@ -413,7 +413,7 @@ void Stepper::beat()
   }
   else
   {
-    stop();
+    ST();
     Serial.println("Stopped: speed is 0.");
   }
 }

@@ -6,20 +6,20 @@ class Servomotor : public Motor
   int angleMin, angleMax;
   int pin;
   int angle; // current angle
-  void move();
-  void beat();
+  void RA();
+  void SQ();
   void servoStep();
   void moveStep();
 
 public:
   Servomotor();
   Servomotor(int p, int amin, int amax);
-  void setRotate(int v);
+  void setRO(int v);
   String getType();
-  void setDir(int v);
-  void stop();
-  void setMove(int v);
-  void setWave(int v);
+  void SD(int v);
+  void ST();
+  void setRA(int v);
+  void setRW(int v);
   void goHome();
   void action();
 };
@@ -43,13 +43,13 @@ String Servomotor::getType()
   return " (servo)";
 }
 
-void Servomotor::setDir(int v)
+void Servomotor::SD(int v)
 {
   if (v > 0)
     v = 1;
   switch (mode)
   {
-  case MODE_STOP:
+  case MODE_ST:
     if (v < 0)
       dir = 1 - dir;
     else
@@ -72,17 +72,17 @@ void Servomotor::setDir(int v)
     Serial.println("CW");
 }
 
-void Servomotor::setRotate(int v)
+void Servomotor::setRO(int v)
 {
-  Serial.println(">> servo has no rotate command");
+  Serial.println(">> servo has no RO command");
 }
 
-void Servomotor::stop()
+void Servomotor::ST()
 {
   Serial.println(">> stop");
   switch (mode)
   {
-  case MODE_BEAT:
+  case MODE_SQ:
     if (currentDir == dir)
     {
       currentDir = 1 - dir;
@@ -92,26 +92,26 @@ void Servomotor::stop()
     mode = MODE_HOME;
     timeMS = millis();
     break;
-  case MODE_MOVE:
+  case MODE_RA:
     mode = MODE_HOME;
     stepsHome = steps;
     timeMS = millis();
     break;
-  case MODE_ROTATE:
-  case MODE_WAVE:
+  /*case MODE_RO:
+  case MODE_RW:
     mode = MODE_HOME;
     stepsHome = nSteps;
     timeMS = millis();
-    break;
+    break;*/
   default:
     mode = nextMode;
-    nextMode = MODE_STOP;
+    nextMode = MODE_ST;
     currentSteps = 0;
     angle = servo.read();
   }
 }
 
-void Servomotor::setMove(int v)
+void Servomotor::setRA(int v)
 {
   if (v < 0)
     v = 0;
@@ -123,19 +123,19 @@ void Servomotor::setMove(int v)
   Serial.println(" degrees");
   steps = abs(v) / 360.0 * nSteps;
   currentSteps = 0;
-  if (mode == MODE_STOP)
+  if (mode == MODE_ST)
   {
-    mode = MODE_MOVE;
+    mode = MODE_RA;
     timeMS = millis();
   }
   else
   {
-    nextMode = MODE_MOVE;
-    stop();
+    nextMode = MODE_RA;
+    ST();
   }
 }
 
-void Servomotor::setWave(int v)
+void Servomotor::setRW(int v)
 {
   Serial.println(">> servo has no wave command");
 }
@@ -148,8 +148,8 @@ void Servomotor::goHome()
     if (currentSteps >= stepsHome)
     {
       currentSteps = 0;
-      mode = MODE_STOP;
-      stop();
+      mode = MODE_ST;
+      ST();
     }
     else
     {
@@ -189,8 +189,8 @@ void Servomotor::moveStep()
 {
   if (currentSteps >= steps)
   {
-    mode = MODE_STOP;
-    stop();
+    mode = MODE_ST;
+    ST();
   }
   else
   {
@@ -204,13 +204,13 @@ void Servomotor::action()
 {
   switch (mode)
   {
-  case MODE_STOP:
+  case MODE_ST:
     break;
-  case MODE_MOVE:
-    move();
+  case MODE_RA:
+    RA();
     break;
-  case MODE_BEAT:
-    beat();
+  case MODE_SQ:
+    SQ();
     break;
   case MODE_HOME:
     goHome();
@@ -219,7 +219,7 @@ void Servomotor::action()
 }
 
 // rotate a number of steps
-void Servomotor::move()
+void Servomotor::RA()
 {
   if (speed > 0)
   {
@@ -230,13 +230,13 @@ void Servomotor::move()
   }
   else
   {
-    stop();
+    ST();
     Serial.println("Stopped: speed is 0.");
   }
 }
 
 // continuous hammer movement with pattern of angles
-void Servomotor::beat()
+void Servomotor::SQ()
 {
   if (speed > 0)
   {
@@ -285,7 +285,7 @@ void Servomotor::beat()
   }
   else
   {
-    stop();
+    ST();
     Serial.println("Stopped: speed is 0.");
   }
 }

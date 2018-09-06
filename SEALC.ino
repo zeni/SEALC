@@ -36,6 +36,7 @@
 #define COMMAND_WAVE 7
 #define COMMAND_BEAT 8
 #define COMMAND_ERROR 9
+#define COMMAND_ROTATEPAUSE 10
 
 // vars
 Motor *motors[N_MOTORS];
@@ -68,8 +69,29 @@ void updateValue(char a)
   currentValue += (a - 48);
 }
 
-void processCommand()
+void processCommand(char a)
 {
+  if ((a >= 48) && (a < 58))
+  {
+    if (firstChar)
+    {
+      currentCommand = COMMAND_SELECT;
+      selectedMotor = a - 48;
+      if (selectedMotor >= N_MOTORS)
+        selectedMotor = N_MOTORS - 1;
+      displaySelectedMotor();
+      firstChar = false;
+    }
+    else
+    {
+      currentCommand = COMMAND_NONE;
+      updateValue(a);
+    }
+  }
+  else
+  {
+    command[iCommand++] = a;
+  }
   if (iCommand == 1)
   {
     switch (command[0])
@@ -77,9 +99,20 @@ void processCommand()
     case COLUMN:
       if (firstChar)
       {
-        currentCommand = COMMAND_NONE;
+        currentCommand = COMMAND_ERROR;
       }
-      motors[selectedMotor]->setInterBeat(currentValue);
+      else
+      {
+        switch (currentCommand)
+        {
+        case COMMAND_BEAT:
+          motors[selectedMotor]->columnSQ(currentValue);
+          break;
+        case COMMAND_ROTATEPAUSE:
+          //motors[selectedMotor]->columnRP(currentValue);
+          break;
+        }
+      }
       currentValue = -1;
       iCommand = 0;
       command[0] = 0;
@@ -93,29 +126,29 @@ void processCommand()
       switch (currentCommand)
       {
       case COMMAND_SPEED:
-        motors[selectedMotor]->setSpeed(currentValue);
+        motors[selectedMotor]->SS(currentValue);
         break;
       case COMMAND_DIR:
-        motors[selectedMotor]->setDir(currentValue);
+        motors[selectedMotor]->SD(currentValue);
         break;
       case COMMAND_ROTATE:
-        motors[selectedMotor]->setRotate(currentValue);
+        motors[selectedMotor]->setRO(currentValue);
         break;
       case COMMAND_STOP:
-        motors[selectedMotor]->setNextMode(MODE_STOP);
-        motors[selectedMotor]->stop();
+        motors[selectedMotor]->setNextMode(MODE_ST);
+        motors[selectedMotor]->ST();
         break;
       case COMMAND_MOVE:
-        motors[selectedMotor]->setMove(currentValue);
+        motors[selectedMotor]->setRA(currentValue);
         break;
       case COMMAND_WAVE:
-        motors[selectedMotor]->setWave(currentValue);
+        motors[selectedMotor]->setRW(currentValue);
         break;
       case COMMAND_BEAT:
-        motors[selectedMotor]->initBeat();
-        motors[selectedMotor]->setBeat(currentValue);
+        motors[selectedMotor]->setSQ(currentValue);
         break;
       case COMMAND_SELECT:
+      case COMMAND_ERROR:
       case COMMAND_NONE:
         break;
       }
@@ -128,6 +161,7 @@ void processCommand()
   }
   else if (iCommand == 2)
   {
+    currentCommand = COMMAND_ERROR;
     switch (command[0])
     {
     case 's':
@@ -136,19 +170,20 @@ void processCommand()
       {
       case 's':
       case 'S':
-        currentCommand = COMMAND_SPEED;
+        currentCommand = COMMAND_SPEED; //SS
         break;
       case 'd':
       case 'D':
-        currentCommand = COMMAND_DIR;
+        currentCommand = COMMAND_DIR; //SD
         break;
       case 't':
       case 'T':
-        currentCommand = COMMAND_STOP;
+        currentCommand = COMMAND_STOP; //ST
         break;
       case 'q':
       case 'Q':
-        currentCommand = COMMAND_BEAT;
+        currentCommand = COMMAND_BEAT; //SQ
+        motors[selectedMotor]->initBeat();
         break;
       }
       break;
@@ -158,15 +193,19 @@ void processCommand()
       {
       case 'o':
       case 'O':
-        currentCommand = COMMAND_ROTATE;
+        currentCommand = COMMAND_ROTATE; //RO
         break;
       case 'W':
       case 'w':
-        currentCommand = COMMAND_WAVE;
+        currentCommand = COMMAND_WAVE; //RW
         break;
       case 'a':
       case 'A':
-        currentCommand = COMMAND_MOVE;
+        currentCommand = COMMAND_MOVE; //RA
+        break;
+      case 'p':
+      case 'P':
+        currentCommand = COMMAND_ROTATEPAUSE; //RP
         break;
       }
       break;
@@ -203,82 +242,8 @@ void loop()
   if (Serial.available())
   {
     char a = Serial.read();
-    if ((a >= 48) && (a < 58))
-    {
-      if (firstChar)
-      {
-        currentCommand = COMMAND_SELECT;
-        selectedMotor = a - 48;
-        if (selectedMotor >= N_MOTORS)
-          selectedMotor = N_MOTORS - 1;
-        displaySelectedMotor();
-        firstChar = false;
-      }
-      else
-      {
-        updateValue(a);
-      }
-    }
-    else
-    {
-      command[iCommand++] = a;
-    }
-    processCommand();
+    processCommand(a);
   }
-  /*case COMMAND_BEAT:
-        if (firstChar)
-          firstChar = false;
-        currentCommand = C_COMMAND_BEAT;
-        motors[selectedMotor]->initBeat();
-        break;
-      case COLUMN:
-        if (firstChar)
-        {
-          currentCommand = C_COMMAND_NONE;
-        }
-        motors[selectedMotor]->setInterBeat(currentValue);
-        currentValue = -1;
-        break;
-      // execute commands  / set mode
-      case SEPARATOR:
-      case EOL:
-        if (firstChar)
-        {
-          currentCommand = C_COMMAND_NONE;
-        }
-        switch (currentCommand)
-        {
-        case C_COMMAND_SPEED:
-          motors[selectedMotor]->setSpeed(currentValue);
-          break;
-        case C_COMMAND_DIR:
-          motors[selectedMotor]->setDir(currentValue);
-          break;
-        case C_COMMAND_ROTATE:
-          motors[selectedMotor]->setRotate(currentValue);
-          break;
-        case C_COMMAND_STOP:
-          motors[selectedMotor]->setNextMode(MODE_STOP);
-          motors[selectedMotor]->stop();
-          break;
-        case C_COMMAND_MOVE:
-          motors[selectedMotor]->setMove(currentValue);
-          break;
-        case C_COMMAND_WAVE:
-          motors[selectedMotor]->setWave(currentValue);
-          break;
-        case C_COMMAND_BEAT:
-          motors[selectedMotor]->setBeat(currentValue);
-          break;
-        case C_COMMAND_SELECT:
-        case C_COMMAND_NONE:
-          break;
-        }
-        currentValue = -1;
-        firstChar = true;
-        break;
-      }
-    }*/
   for (int i = 0; i < N_MOTORS; i++)
   {
     motors[i]->action();
