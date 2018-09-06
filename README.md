@@ -4,7 +4,7 @@
 # Description
 Microcontroller program to live code motors (steppers and servos) through a serial terminal.
 
-[motor# (0-9)]command[argument]
+ [motor# (0-9)]command[argument]
 
 Notes:
 - Separate several commands by comma to send them at once.
