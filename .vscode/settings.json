@@ -1,4 +1,7 @@
 {
     "editor.autoIndent": true,
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "git.ignoredRepositories": [
+        ".vscode"
+    ]
 }
