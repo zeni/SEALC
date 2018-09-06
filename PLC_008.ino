@@ -11,6 +11,7 @@
   - Deal with typing errors
   - better transition from a command to another one (wait to be stopped)
   - wave as a rotate option ?
+  - new command: rotate x turns, pause, rotate x turns, ...
 *******************************************************************/
 
 #include "Motor.h"
