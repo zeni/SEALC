@@ -177,7 +177,6 @@ void processCommand(char a)
         break;
       case 't':
       case 'T':
-        Serial.println("st");
         currentCommand = COMMAND_ST; //ST
         break;
       case 'q':
@@ -193,7 +192,6 @@ void processCommand(char a)
       {
       case 'o':
       case 'O':
-        Serial.println("ro");
         currentCommand = COMMAND_RO; //RO
         break;
       case 'W':
