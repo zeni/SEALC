@@ -5,13 +5,13 @@
 Microcontroller program to live code motors (steppers and servos) through a serial terminal.
 
 [motor# (0-9)]command[argument]
+
 Notes:
 - Separate several commands by comma to send them at once.
 - No need to re-select motor once selected.
 
 # Commands:
-SS set speed:
-argument in RPM
+- SS set speed: argument in RPM.
 
 SD set direction:
 argument=0 => CW
