@@ -183,7 +183,7 @@ void processCommand(char a)
       case 'q':
       case 'Q':
         currentCommand = COMMAND_BEAT; //SQ
-        motors[selectedMotor]->initBeat();
+        motors[selectedMotor]->initSQ();
         break;
       }
       break;

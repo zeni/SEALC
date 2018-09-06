@@ -36,7 +36,7 @@ protected:
 public:
   // common
   Motor();
-  void initBeat();
+  void initSQ();
   void SS(int v);
   virtual void setRO(int v);
   virtual void setRA(int v);
@@ -105,7 +105,7 @@ void Motor::SS(int v)
   Serial.println(" RPM");
 }
 
-void Motor::initBeat()
+void Motor::initSQ()
 {
   angleSeq = 0;
   indexSeq = 0;
