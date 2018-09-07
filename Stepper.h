@@ -14,19 +14,20 @@ class Stepper : public Motor
   void goHome();
   void stepperStep();
   void moveStep();
-
-public:
-  Stepper();
-  Stepper(int n, int stp, int dir);
+  void initRP();
+  bool setRP(int v);
   void SD(int v);
   bool setRO(int v);
   void setRA(int v);
-  bool setRP(int v);
-  void setRW(int v);
+  bool setRW(int v);
   void columnRP(int v);
   void ST();
   void action();
   String getType();
+
+public:
+  Stepper();
+  Stepper(int n, int stp, int dir);
 };
 
 Stepper::Stepper() : Motor()
@@ -53,30 +54,15 @@ String Stepper::getType()
 
 void Stepper::SD(int v)
 {
-  if (v > 0)
-    v = 1;
-  switch (mode)
+  v = (v > 0) ? 1 : 0;
+  dir = (v < 0) ? (1 - dir) : v;
+  if (mode == MODE_ST)
   {
-  case MODE_ST:
-    if (v < 0)
-      dir = 1 - dir;
-    else
-      dir = v;
     currentDir = dir;
     digitalWrite(pinDIR, dir);
-    break;
-  default:
-    if (v < 0)
-      dir = 1 - dir;
-    else
-      dir = v;
-    break;
   }
   Serial.print(">> dir: ");
-  if (dir > 0)
-    Serial.println("CCW");
-  else
-    Serial.println("CW");
+  (dir > 0) ? Serial.println("CCW") : Serial.println("CW");
 }
 
 bool Stepper::setRO(int v)
@@ -106,15 +92,20 @@ bool Stepper::setRO(int v)
   return true;
 }
 
+void Stepper::initRP()
+{
+  turns = 1;
+  pause = 1000;
+  isPaused = false;
+}
+
 bool Stepper::setRP(int v)
 {
-  Serial.print(">> rotate (with pause) ");
+  pause = (v <= 0) ? 1000 : v;
+  turns = (turns <= 0) ? 1 : turns;
+  steps = turns * nSteps;
+  Serial.print(">> rotate (with " + String(pause) + "ms pause) ");
   Serial.println(String(turns) + " turn(s)");
-  if (v <= 0)
-    pause = 1000;
-  else
-    pause = v;
-  isPaused = false;
   if (mode == MODE_ST)
   {
     mode = MODE_RP;
@@ -130,16 +121,11 @@ bool Stepper::setRP(int v)
 
 void Stepper::columnRP(int v)
 {
-  if (v <= 0)
-    turns = 1;
-  else
-    turns = v;
-  steps = turns * nSteps;
+  turns = (v <= 0) ? 1 : v;
 }
 
 void Stepper::ST()
 {
-  Serial.println(">> stop");
   switch (mode)
   {
   case MODE_SQ:
@@ -149,9 +135,7 @@ void Stepper::ST()
     {
 
       if (currentDir == dir)
-      {
         currentDir = 1 - dir;
-      }
       digitalWrite(pinDIR, currentDir);
       currentSteps = steps - currentSteps;
       stepsHome = steps;
@@ -178,10 +162,7 @@ void Stepper::ST()
     break;
   case MODE_RP:
     mode = MODE_HOME;
-    if (isPaused)
-      stepsHome = 0;
-    else
-      stepsHome = nSteps;
+    stepsHome = isPaused ? 0 : nSteps;
     timeMS = millis();
     break;
   case MODE_RW:
@@ -191,6 +172,7 @@ void Stepper::ST()
     timeMS = millis();
     break;
   default:
+    Serial.println(">> stop");
     mode = nextMode;
     nextMode = MODE_ST;
     currentSteps = 0;
@@ -245,9 +227,7 @@ void Stepper::moveStep()
 
 void Stepper::setRA(int v)
 {
-  if (v < 0)
-    v = 0;
-  v = v % 360;
+  v = (v <= 0) ? 0 : (v % 360);
   Serial.print(">> move ");
   Serial.print(v);
   Serial.println(" degrees");
@@ -261,14 +241,13 @@ void Stepper::setRA(int v)
   else
   {
     nextMode = MODE_RA;
-    Stepper::ST();
+    ST();
   }
 }
 
-void Stepper::setRW(int v)
+bool Stepper::setRW(int v)
 {
-  if (v <= 0)
-    v = 1;
+  v = (v <= 0) ? 1 : v;
   Serial.print(">> speed cycle: ");
   Serial.print(v);
   Serial.println(" per turn");
@@ -313,6 +292,7 @@ void Stepper::action()
     goHome();
     break;
   }
+  return true;
 }
 
 // rotation
@@ -343,6 +323,7 @@ void Stepper::RO()
 // rotation with pause
 void Stepper::RP()
 {
+  Serial.println(isPaused);
   if (speed > 0)
   {
     if (isPaused)
@@ -360,6 +341,8 @@ void Stepper::RP()
         if (currentSteps >= steps)
         {
           isPaused = true;
+          currentSteps = 0;
+          digitalWrite(pinSTP, LOW);
         }
         else
         {
@@ -398,10 +381,7 @@ void Stepper::RW()
   if (speed > 0)
   {
     int s;
-    if (waveDir == 0)
-      s = speed * (steps - currentSteps);
-    else
-      s = speed * currentSteps;
+    s = (waveDir == 0) ? (speed * (steps - currentSteps)) : (speed * currentSteps);
     if ((millis() - timeMS) > s)
     {
       if (currentSteps >= steps)
@@ -413,8 +393,8 @@ void Stepper::RW()
       {
         realSteps++;
         realSteps %= nSteps;
-        stepperStep();
         currentSteps++;
+        stepperStep();
         timeMS = millis();
       }
     }

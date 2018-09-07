@@ -25,9 +25,9 @@ protected:
   int lengthSeq;        // length of seq.
   int angleSeq;         // angle value for seq.
   unsigned long timeMS; // for speed
-  int speed;            // en RPM
+  int speed;            // en ms
+  int speedRPM;         //en RPM
   bool newBeat;
-
   //common
   virtual void RA();
   virtual void SQ();
@@ -35,14 +35,14 @@ protected:
   virtual void moveStep();
 
 public:
-  // common
   Motor();
   void initSQ();
+  virtual void initRP();
   void SS(int v);
   virtual bool setRO(int v);
   virtual bool setRP(int v);
   virtual void setRA(int v);
-  virtual void setRW(int v);
+  virtual bool setRW(int v);
   void setSQ(int v);
   void columnSQ(int v);
   virtual void columnRP(int v);
@@ -50,15 +50,18 @@ public:
   virtual void action();
   virtual void SD(int v);
   virtual String getType();
-  void setMode(int m);
   void setNextMode(int m);
+  void GS();
+  void GD();
+  void GM();
 };
 
 Motor::Motor()
 {
   mode = MODE_ST;
   nextMode = mode;
-  speed = 12;
+  speedRPM = 12;
+  SS(speedRPM);
   currentSteps = 0;
   steps = 0;
   stepsHome = steps;
@@ -77,13 +80,53 @@ String Motor::getType()
   return "unknown";
 }
 
-void Motor::SD(int v)
+void Motor::GS()
 {
+  Serial.print(">> speed: ");
+  Serial.print(speedRPM);
+  Serial.println(" RPM");
 }
 
-void Motor::setMode(int m)
+void Motor::GD()
 {
-  mode = m;
+  Serial.print(">> dir: ");
+  (dir > 0) ? Serial.println("CCW") : Serial.println("CW");
+}
+
+void Motor::GM()
+{
+  Serial.print(">> mode: ");
+  switch (mode)
+  {
+  case MODE_ST:
+    Serial.println("ST");
+    break;
+  case MODE_RO:
+    Serial.println("RO");
+    break;
+  case MODE_RA:
+    Serial.println("RA");
+    break;
+  case MODE_RW:
+    Serial.println("RW");
+    break;
+  case MODE_RP:
+    Serial.println("RP");
+    break;
+  case MODE_HOME:
+    Serial.println("HOME");
+    break;
+  case MODE_SQ:
+    Serial.println("SQ");
+    break;
+  case MODE_SD:
+    Serial.println("SD");
+    break;
+  }
+}
+
+void Motor::SD(int v)
+{
 }
 
 void Motor::setNextMode(int m)
@@ -93,15 +136,10 @@ void Motor::setNextMode(int m)
 
 void Motor::SS(int v)
 {
-  if (v > 0)
-    speed = floor(60.0 / (v * nSteps) * 1000);
-  else
-  {
-    speed = 0;
-    v = 0;
-  }
+  speedRPM = (v > 0) ? v : 0;
+  speed = (speedRPM > 0) ? (floor(60.0 / (speedRPM * nSteps) * 1000)) : 0;
   Serial.print(">> speed: ");
-  Serial.print(v);
+  Serial.print(speedRPM);
   Serial.println(" RPM");
 }
 
@@ -113,10 +151,13 @@ void Motor::initSQ()
   newBeat = true;
 }
 
+void Motor::initRP()
+{
+}
+
 void Motor::columnSQ(int v)
 {
-  if (v < 0)
-    v = 0;
+  v = (v <= 0) ? 0 : v;
   if (angleSeq == 0)
     angleSeq = v;
   else
@@ -153,8 +194,9 @@ void Motor::setRA(int v)
 {
 }
 
-void Motor::setRW(int v)
+bool Motor::setRW(int v)
 {
+  return false;
 }
 
 void Motor::setSQ(int v)

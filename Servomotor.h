@@ -10,20 +10,21 @@ class Servomotor : public Motor
   void SQ();
   void servoStep();
   void moveStep();
-
-public:
-  Servomotor();
-  Servomotor(int p, int amin, int amax);
+  void initRP();
   bool setRO(int v);
   String getType();
   void SD(int v);
   void ST();
   void setRA(int v);
-  void setRW(int v);
+  bool setRW(int v);
   bool setRP(int v);
   void goHome();
   void action();
   void columnRP(int v);
+
+public:
+  Servomotor();
+  Servomotor(int p, int amin, int amax);
 };
 
 Servomotor::Servomotor() : Motor()
@@ -48,29 +49,12 @@ String Servomotor::getType()
 
 void Servomotor::SD(int v)
 {
-  if (v > 0)
-    v = 1;
-  switch (mode)
-  {
-  case MODE_ST:
-    if (v < 0)
-      dir = 1 - dir;
-    else
-      dir = v;
+  v = (v > 0) ? 1 : 0;
+  dir = (v < 0) ? (1 - dir) : v;
+  if (mode == MODE_ST)
     currentDir = dir;
-    break;
-  default:
-    if (v < 0)
-      dir = 1 - dir;
-    else
-      dir = v;
-    break;
-  }
   Serial.print(">> dir: ");
-  if (dir > 0)
-    Serial.println("CCW");
-  else
-    Serial.println("CW");
+  (dir > 0) ? Serial.println("CCW") : Serial.println("CW");
 }
 
 bool Servomotor::setRO(int v)
@@ -83,6 +67,10 @@ bool Servomotor::setRP(int v)
 {
   Serial.println(">> servo has no RP command");
   return false;
+}
+
+void Servomotor::initRP()
+{
 }
 
 void Servomotor::columnRP(int v)
@@ -117,11 +105,8 @@ void Servomotor::ST()
 
 void Servomotor::setRA(int v)
 {
-  if (v < 0)
-    v = 0;
-  v = v % 180;
-  if (dir > 0)
-    v = -v;
+  v = (v <= 0) ? 0 : (v % (angleMax - angleMin));
+  v = (dir > 0) ? -v : v;
   Serial.print(">> move ");
   Serial.print(v);
   Serial.println(" degrees");
@@ -139,9 +124,10 @@ void Servomotor::setRA(int v)
   }
 }
 
-void Servomotor::setRW(int v)
+bool Servomotor::setRW(int v)
 {
-  Serial.println(">> servo has no wave command");
+  Serial.println(">> servo has no RW command");
+  return false;
 }
 
 // stop and back to init pos

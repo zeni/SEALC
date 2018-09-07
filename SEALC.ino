@@ -36,6 +36,9 @@
 #define COMMAND_SQ 8 // SeQuence
 #define COMMAND_ERROR 9
 #define COMMAND_RP 10 // Rotate Pause
+#define COMMAND_GS 11 // Get Speed
+#define COMMAND_GD 12 // Get Direction
+#define COMMAND_GM 13 // Get Mode
 
 // vars
 Motor *motors[N_MOTORS];
@@ -133,7 +136,8 @@ void processCommand(char a)
         motors[selectedMotor]->setRA(currentValue);
         break;
       case COMMAND_RW:
-        motors[selectedMotor]->setRW(currentValue);
+        if (!motors[selectedMotor]->setRW(currentValue))
+          currentCommand = COMMAND_NONE;
         break;
       case COMMAND_SQ:
         motors[selectedMotor]->setSQ(currentValue);
@@ -141,6 +145,15 @@ void processCommand(char a)
       case COMMAND_RP:
         if (!motors[selectedMotor]->setRP(currentValue))
           currentCommand = COMMAND_NONE;
+        break;
+      case COMMAND_GS:
+        motors[selectedMotor]->GS();
+        break;
+      case COMMAND_GD:
+        motors[selectedMotor]->GD();
+        break;
+      case COMMAND_GM:
+        motors[selectedMotor]->GM();
         break;
       case COMMAND_SELECT:
       case COMMAND_ERROR:
@@ -201,6 +214,25 @@ void processCommand(char a)
       case 'p':
       case 'P':
         currentCommand = COMMAND_RP; //RP
+        motors[selectedMotor]->initRP();
+        break;
+      }
+      break;
+    case 'g':
+    case 'G':
+      switch (command[1])
+      {
+      case 's':
+      case 'S':
+        currentCommand = COMMAND_GS; //GS
+        break;
+      case 'd':
+      case 'D':
+        currentCommand = COMMAND_GD; //GD
+        break;
+      case 'm':
+      case 'M':
+        currentCommand = COMMAND_GM; //GM
         break;
       }
       break;
