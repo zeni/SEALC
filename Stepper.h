@@ -54,7 +54,7 @@ String Stepper::getType()
 
 void Stepper::SD(int v)
 {
-  v = (v > 0) ? 1 : 0;
+  v = (v > 0) ? 1 : v;
   dir = (v < 0) ? (1 - dir) : v;
   if (mode == MODE_ST)
   {

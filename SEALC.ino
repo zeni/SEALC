@@ -39,6 +39,7 @@
 #define COMMAND_GS 11 // Get Speed
 #define COMMAND_GD 12 // Get Direction
 #define COMMAND_GM 13 // Get Mode
+#define COMMAND_GI 14 // Get Id
 
 // vars
 Motor *motors[N_MOTORS];
@@ -155,6 +156,10 @@ void processCommand(char a)
       case COMMAND_GM:
         motors[selectedMotor]->GM();
         break;
+      case COMMAND_GI:
+        motors[selectedMotor]->GI(selectedMotor);
+        Serial.println(motors[selectedMotor]->getType());
+        break;
       case COMMAND_SELECT:
       case COMMAND_ERROR:
       case COMMAND_NONE:
@@ -233,6 +238,10 @@ void processCommand(char a)
       case 'm':
       case 'M':
         currentCommand = COMMAND_GM; //GM
+        break;
+      case 'i':
+      case 'I':
+        currentCommand = COMMAND_GI; //GI
         break;
       }
       break;

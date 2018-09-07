@@ -12,6 +12,7 @@
 class Motor
 {
 protected:
+  int id;
   int nSteps;
   int mode;
   int nextMode;
@@ -54,6 +55,7 @@ public:
   void GS();
   void GD();
   void GM();
+  void GI(int i);
 };
 
 Motor::Motor()
@@ -85,6 +87,11 @@ void Motor::GS()
   Serial.print(">> speed: ");
   Serial.print(speedRPM);
   Serial.println(" RPM");
+}
+
+void Motor::GI(int i)
+{
+  Serial.print(">> motor: " + String(i));
 }
 
 void Motor::GD()

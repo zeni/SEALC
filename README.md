@@ -33,4 +33,6 @@ Notes:
 
 - GM: get mode.
 
+- GI: get selected motor id and type.
+
 
