@@ -4,14 +4,13 @@
 
   By 23N!
   Created: 2018/08/31
-  Updated: 2018/09/05
+  Updated: 2018/09/07
 
   TODO:
   - Error messages
-  - Deal with typing errors
-  - better transition from a command to another one (wait to be stopped)
   - wave as a rotate option ?
   - new command: rotate x turns, pause, rotate x turns, ...
+  - servo: use writeMicroseconds instead ?
 *******************************************************************/
 
 #include "Motor.h"
@@ -27,16 +26,16 @@
 #define COLUMN ':'
 // commands
 #define COMMAND_SELECT 0
-#define COMMAND_SS 1
-#define COMMAND_SD 2
-#define COMMAND_RO 3
-#define COMMAND_ST 4
-#define COMMAND_RA 5
+#define COMMAND_SS 1 // Set Speed
+#define COMMAND_SD 2 // Set Direction
+#define COMMAND_RO 3 // ROtate
+#define COMMAND_ST 4 // STop
+#define COMMAND_RA 5 // Rotate Angle
 #define COMMAND_NONE 6
-#define COMMAND_RW 7
-#define COMMAND_SQ 8
+#define COMMAND_RW 7 // Rotate Wave
+#define COMMAND_SQ 8 // SeQuence
 #define COMMAND_ERROR 9
-#define COMMAND_RP 10
+#define COMMAND_RP 10 // Rotate Pause
 
 // vars
 Motor *motors[N_MOTORS];
@@ -221,7 +220,7 @@ void setup()
 {
   motors[0] = new Stepper(48, 2, 5);
   motors[1] = new Stepper(48, 3, 6);
-  motors[2] = new Servomotor(9, 0, 180);
+  motors[2] = new Servomotor(11, 15, 195);
   selectedMotor = 0;
   Serial.begin(115200);
   displayIntro();

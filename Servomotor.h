@@ -36,6 +36,7 @@ Servomotor::Servomotor(int p, int amin, int amax) : Motor()
   nSteps = 360;
   servo.attach(pin);
   servo.write(angleMin);
+  angle = servo.read();
 }
 
 String Servomotor::getType()
@@ -163,9 +164,11 @@ void Servomotor::goHome()
 // one step servo
 void Servomotor::servoStep()
 {
+  Serial.println(angle);
+  Serial.println(currentSteps);
   if (currentDir == 0)
   {
-    angle += currentSteps;
+    angle++;
     if (angle > angleMax)
     {
       currentSteps = steps;
@@ -174,13 +177,14 @@ void Servomotor::servoStep()
   }
   else
   {
-    angle -= currentSteps;
+    angle--;
     if (angle < angleMin)
     {
       currentSteps = steps;
       angle = angleMin;
     }
   }
+  Serial.println(angle);
   servo.write(angle);
 }
 
