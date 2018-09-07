@@ -66,9 +66,7 @@ void Servomotor::SD(int v)
   }
   Serial.print(">> dir: ");
   if (dir > 0)
-  {
     Serial.println("CCW");
-  }
   else
     Serial.println("CW");
 }
@@ -85,9 +83,7 @@ void Servomotor::ST()
   {
   case MODE_SQ:
     if (currentDir == dir)
-    {
       currentDir = 1 - dir;
-    }
     currentSteps = steps - currentSteps;
     stepsHome = steps;
     mode = MODE_HOME;
@@ -98,12 +94,6 @@ void Servomotor::ST()
     stepsHome = steps;
     timeMS = millis();
     break;
-  /*case MODE_RO:
-  case MODE_RW:
-    mode = MODE_HOME;
-    stepsHome = nSteps;
-    timeMS = millis();
-    break;*/
   default:
     mode = nextMode;
     nextMode = MODE_ST;
@@ -228,9 +218,7 @@ void Servomotor::RA()
   if (speed > 0)
   {
     if ((millis() - timeMS) > speed)
-    {
       moveStep();
-    }
   }
   else
   {
@@ -266,14 +254,10 @@ void Servomotor::SQ()
         currentSteps = 0;
         indexSeq++;
         if ((indexSeq % 2) == 0)
-        {
           newBeat = true;
-        }
         int a = floor(indexSeq / 2);
         if (a >= lengthSeq)
-        {
           indexSeq = 0;
-        }
       }
       else
       {

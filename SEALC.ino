@@ -82,23 +82,17 @@ void processCommand(char a)
       firstChar = false;
     }
     else
-    {
       updateValue(a);
-    }
   }
   else
-  {
     command[iCommand++] = a;
-  }
   if (iCommand == 1)
   {
     switch (command[0])
     {
     case COLUMN:
       if (firstChar)
-      {
         currentCommand = COMMAND_ERROR;
-      }
       else
       {
         switch (currentCommand)
@@ -118,9 +112,7 @@ void processCommand(char a)
     case SEPARATOR:
     case EOL:
       if (firstChar)
-      {
         currentCommand = COMMAND_NONE;
-      }
       switch (currentCommand)
       {
       case COMMAND_SS:
@@ -243,7 +235,5 @@ void loop()
     processCommand(a);
   }
   for (int i = 0; i < N_MOTORS; i++)
-  {
     motors[i]->action();
-  }
 }

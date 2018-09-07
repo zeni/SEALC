@@ -63,9 +63,7 @@ Motor::Motor()
   dir = 0;
   currentDir = dir;
   for (int j = 0; j < MAX_SEQ; j++)
-  {
     seq[j] = 0;
-  }
   indexSeq = 0;
   lengthSeq = 0;
   angleSeq = 0;
@@ -118,9 +116,7 @@ void Motor::columnSQ(int v)
   if (v < 0)
     v = 0;
   if (angleSeq == 0)
-  {
     angleSeq = v;
-  }
   else
   {
     seq[indexSeq] = v;

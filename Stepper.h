@@ -1,13 +1,3 @@
-#define MAX_SEQ 10 // max length of sequence for beat
-//  modes
-#define MODE_ST 0
-#define MODE_RO 1
-#define MODE_RA 2
-#define MODE_RW 4
-#define MODE_SQ 5
-#define MODE_HOME 6
-#define MODE_SD 7
-
 class Stepper : public Motor
 {
   int pinSTP, pinDIR;
@@ -77,9 +67,7 @@ void Stepper::SD(int v)
   }
   Serial.print(">> dir: ");
   if (dir > 0)
-  {
     Serial.println("CCW");
-  }
   else
     Serial.println("CW");
 }
@@ -293,9 +281,7 @@ void Stepper::RO()
         timeMS = millis();
       }
       else
-      {
         moveStep();
-      }
     }
   }
   else
@@ -311,9 +297,7 @@ void Stepper::RA()
   if (speed > 0)
   {
     if ((millis() - timeMS) > speed)
-    {
       moveStep();
-    }
   }
   else
   {
@@ -329,13 +313,9 @@ void Stepper::RW()
   {
     int s;
     if (waveDir == 0)
-    {
       s = speed * (steps - currentSteps);
-    }
     else
-    {
       s = speed * currentSteps;
-    }
     if ((millis() - timeMS) > s)
     {
       if (currentSteps >= steps)
@@ -390,23 +370,17 @@ void Stepper::SQ()
         currentSteps = 0;
         indexSeq++;
         if ((indexSeq % 2) == 0)
-        {
           newBeat = true;
-        }
         int a = floor(indexSeq / 2);
         if (a >= lengthSeq)
-        {
           indexSeq = 0;
-        }
       }
       else
       {
         int a = floor(indexSeq / 2);
         currentSteps++;
         if (seq[a] > 0)
-        {
           stepperStep();
-        }
         timeMS = millis();
       }
     }
