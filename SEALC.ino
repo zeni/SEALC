@@ -101,7 +101,7 @@ void processCommand(char a)
           motors[selectedMotor]->columnSQ(currentValue);
           break;
         case COMMAND_RP:
-          //motors[selectedMotor]->columnRP(currentValue);
+          motors[selectedMotor]->columnRP(currentValue);
           break;
         }
       }
@@ -122,7 +122,8 @@ void processCommand(char a)
         motors[selectedMotor]->SD(currentValue);
         break;
       case COMMAND_RO:
-        motors[selectedMotor]->setRO(currentValue);
+        if (!motors[selectedMotor]->setRO(currentValue))
+          currentCommand = COMMAND_NONE;
         break;
       case COMMAND_ST:
         motors[selectedMotor]->setNextMode(MODE_ST);
@@ -136,6 +137,10 @@ void processCommand(char a)
         break;
       case COMMAND_SQ:
         motors[selectedMotor]->setSQ(currentValue);
+        break;
+      case COMMAND_RP:
+        if (!motors[selectedMotor]->setRP(currentValue))
+          currentCommand = COMMAND_NONE;
         break;
       case COMMAND_SELECT:
       case COMMAND_ERROR:

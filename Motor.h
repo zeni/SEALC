@@ -7,6 +7,7 @@
 #define MODE_SQ 5
 #define MODE_HOME 6
 #define MODE_SD 7
+#define MODE_RP 8
 
 class Motor
 {
@@ -38,12 +39,13 @@ public:
   Motor();
   void initSQ();
   void SS(int v);
-  virtual void setRO(int v);
+  virtual bool setRO(int v);
+  virtual bool setRP(int v);
   virtual void setRA(int v);
   virtual void setRW(int v);
   void setSQ(int v);
   void columnSQ(int v);
-  //void columnRP(int v);
+  virtual void columnRP(int v);
   virtual void ST();
   virtual void action();
   virtual void SD(int v);
@@ -124,8 +126,18 @@ void Motor::columnSQ(int v)
   }
 }
 
-void Motor::setRO(int v)
+void Motor::columnRP(int v)
 {
+}
+
+bool Motor::setRP(int v)
+{
+  return false;
+}
+
+bool Motor::setRO(int v)
+{
+  return false;
 }
 
 void Motor::ST()
@@ -147,7 +159,7 @@ void Motor::setRW(int v)
 
 void Motor::setSQ(int v)
 {
-  Serial.print(">> beat pattern: ");
+  Serial.print(">> sequence: ");
   currentDir = dir;
   if (angleSeq == 0)
   {

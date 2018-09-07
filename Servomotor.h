@@ -14,14 +14,16 @@ class Servomotor : public Motor
 public:
   Servomotor();
   Servomotor(int p, int amin, int amax);
-  void setRO(int v);
+  bool setRO(int v);
   String getType();
   void SD(int v);
   void ST();
   void setRA(int v);
   void setRW(int v);
+  bool setRP(int v);
   void goHome();
   void action();
+  void columnRP(int v);
 };
 
 Servomotor::Servomotor() : Motor()
@@ -71,9 +73,20 @@ void Servomotor::SD(int v)
     Serial.println("CW");
 }
 
-void Servomotor::setRO(int v)
+bool Servomotor::setRO(int v)
 {
   Serial.println(">> servo has no RO command");
+  return false;
+}
+
+bool Servomotor::setRP(int v)
+{
+  Serial.println(">> servo has no RP command");
+  return false;
+}
+
+void Servomotor::columnRP(int v)
+{
 }
 
 void Servomotor::ST()

@@ -4,7 +4,10 @@ class Stepper : public Motor
   int waveDir; // increasing / decreasing speed
   int turns;   // for rotate (0=continuous rotation)
   int realSteps;
+  int pause;     // for RP in ms
+  bool isPaused; // for RP, status
   void RO();
+  void RP();
   void RA();
   void SQ();
   void RW();
@@ -16,9 +19,11 @@ public:
   Stepper();
   Stepper(int n, int stp, int dir);
   void SD(int v);
-  void setRO(int v);
+  bool setRO(int v);
   void setRA(int v);
+  bool setRP(int v);
   void setRW(int v);
+  void columnRP(int v);
   void ST();
   void action();
   String getType();
@@ -37,6 +42,8 @@ Stepper::Stepper(int n, int pin_stp, int pin_dir) : Motor()
   pinMode(pinSTP, OUTPUT);
   nSteps = n;
   realSteps = currentSteps;
+  pause = 1000;
+  isPaused = false;
 }
 
 String Stepper::getType()
@@ -72,17 +79,19 @@ void Stepper::SD(int v)
     Serial.println("CW");
 }
 
-void Stepper::setRO(int v)
+bool Stepper::setRO(int v)
 {
   Serial.print(">> rotate ");
   if (v <= 0)
   {
-    v = 0;
+    turns = 0;
     Serial.println("continuously");
   }
   else
-    Serial.println(String(v) + " turn(s)");
-  turns = v;
+  {
+    turns = v;
+    Serial.println(String(turns) + " turn(s)");
+  }
   steps = turns * nSteps;
   if (mode == MODE_ST)
   {
@@ -94,6 +103,38 @@ void Stepper::setRO(int v)
     nextMode = MODE_RO;
     ST();
   }
+  return true;
+}
+
+bool Stepper::setRP(int v)
+{
+  Serial.print(">> rotate (with pause) ");
+  Serial.println(String(turns) + " turn(s)");
+  if (v <= 0)
+    pause = 1000;
+  else
+    pause = v;
+  isPaused = false;
+  if (mode == MODE_ST)
+  {
+    mode = MODE_RP;
+    timeMS = millis();
+  }
+  else
+  {
+    nextMode = MODE_RP;
+    ST();
+  }
+  return true;
+}
+
+void Stepper::columnRP(int v)
+{
+  if (v <= 0)
+    turns = 1;
+  else
+    turns = v;
+  steps = turns * nSteps;
 }
 
 void Stepper::ST()
@@ -135,6 +176,14 @@ void Stepper::ST()
     stepsHome = nSteps;
     timeMS = millis();
     break;
+  case MODE_RP:
+    mode = MODE_HOME;
+    if (isPaused)
+      stepsHome = 0;
+    else
+      stepsHome = nSteps;
+    timeMS = millis();
+    break;
   case MODE_RW:
     mode = MODE_HOME;
     currentSteps = realSteps;
@@ -154,9 +203,6 @@ void Stepper::ST()
 // stop and back to init pos
 void Stepper::goHome()
 {
-  Serial.println(stepsHome);
-  Serial.println(currentSteps);
-  Serial.println(currentDir);
   if ((millis() - timeMS) > speed)
   {
     if (currentSteps >= stepsHome)
@@ -238,7 +284,7 @@ void Stepper::setRW(int v)
   else
   {
     nextMode = MODE_RW;
-    Stepper::ST();
+    ST();
   }
 }
 
@@ -250,6 +296,9 @@ void Stepper::action()
     break;
   case MODE_RO:
     RO();
+    break;
+  case MODE_RP:
+    RP();
     break;
   case MODE_RA:
     RA();
@@ -282,6 +331,43 @@ void Stepper::RO()
       }
       else
         moveStep();
+    }
+  }
+  else
+  {
+    ST();
+    Serial.println("Stopped: speed is 0.");
+  }
+}
+
+// rotation with pause
+void Stepper::RP()
+{
+  if (speed > 0)
+  {
+    if (isPaused)
+    {
+      if ((millis() - timeMS) > pause)
+      {
+        isPaused = false;
+        currentSteps = 0;
+      }
+    }
+    else
+    {
+      if ((millis() - timeMS) > speed)
+      {
+        if (currentSteps >= steps)
+        {
+          isPaused = true;
+        }
+        else
+        {
+          currentSteps++;
+          stepperStep();
+        }
+        timeMS = millis();
+      }
     }
   }
   else
