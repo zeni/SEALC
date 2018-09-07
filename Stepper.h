@@ -380,8 +380,7 @@ void Stepper::RW()
 {
   if (speed > 0)
   {
-    int s;
-    s = (waveDir == 0) ? (speed * (steps - currentSteps)) : (speed * currentSteps);
+    int s = (waveDir == 0) ? (speed * (steps - currentSteps)) : (speed * currentSteps);
     if ((millis() - timeMS) > s)
     {
       if (currentSteps >= steps)

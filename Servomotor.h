@@ -153,8 +153,6 @@ void Servomotor::goHome()
 // one step servo
 void Servomotor::servoStep()
 {
-  Serial.println(angle);
-  Serial.println(currentSteps);
   if (currentDir == 0)
   {
     angle++;
@@ -173,7 +171,6 @@ void Servomotor::servoStep()
       angle = angleMin;
     }
   }
-  Serial.println(angle);
   servo.write(angle);
 }
 
@@ -241,6 +238,7 @@ void Servomotor::SQ()
         currentDir = 1 - dir;
         break;
       case 1:
+      case 0:
         currentDir = dir;
         break;
       }
