@@ -49,7 +49,7 @@ String Servomotor::getType()
 
 void Servomotor::SD(int v)
 {
-  v = (v > 0) ? 1 : 0;
+  v = (v > 0) ? 1 : v;
   dir = (v < 0) ? (1 - dir) : v;
   if (mode == MODE_ST)
     currentDir = dir;
@@ -259,9 +259,9 @@ void Servomotor::SQ()
       else
       {
         int a = floor(indexSeq / 2);
+        currentSteps++;
         if (seq[a] > 0)
         {
-          currentSteps++;
           servoStep();
         }
         timeMS = millis();

@@ -11,6 +11,10 @@
   - wave as a rotate option ?
   - new command: rotate x turns, pause, rotate x turns, ...
   - servo: use writeMicroseconds instead ?
+  - SA: stop all
+  - RR: rotate relative
+  - RA: rotate absolute (servo only)
+  - Stepper: keep track of zero/origin ?
 *******************************************************************/
 
 #include "Motor.h"
@@ -256,7 +260,7 @@ void processCommand(char a)
 
 void setup()
 {
-  motors[0] = new Stepper(48, 2, 5);
+  motors[0] = new Stepper(200, 2, 5);
   motors[1] = new Stepper(48, 3, 6);
   motors[2] = new Servomotor(11, 15, 195);
   selectedMotor = 0;
