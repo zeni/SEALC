@@ -21,7 +21,7 @@
 #include "Stepper.h"
 #include "Servomotor.h"
 
-#define N_MOTORS 3
+#define N_MOTORS 4
 // pins
 #define EN 8 // stepper motor enable, low level effective
 // serial commands
@@ -263,6 +263,7 @@ void setup()
   motors[0] = new Stepper(200, 2, 5);
   motors[1] = new Stepper(48, 3, 6);
   motors[2] = new Servomotor(11, 15, 195);
+  motors[3] = new Servomotor(10, 15, 195);
   selectedMotor = 0;
   Serial.begin(115200);
   displayIntro();
