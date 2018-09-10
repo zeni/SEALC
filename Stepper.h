@@ -19,6 +19,7 @@ class Stepper : public Motor
   void SD(int v);
   bool setRO(int v);
   void setRA(int v);
+  void setRR(int v);
   bool setRW(int v);
   void columnRP(int v);
   void ST();
@@ -223,6 +224,11 @@ void Stepper::moveStep()
     stepperStep();
     timeMS = millis();
   }
+}
+
+void Stepper::setRR(int v)
+{
+  setRA(v);
 }
 
 void Stepper::setRA(int v)

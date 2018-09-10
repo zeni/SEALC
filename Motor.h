@@ -3,6 +3,7 @@
 #define MODE_ST 0
 #define MODE_RO 1
 #define MODE_RA 2
+#define MODE_RR 3
 #define MODE_RW 4
 #define MODE_SQ 5
 #define MODE_HOME 6
@@ -43,6 +44,7 @@ public:
   virtual bool setRO(int v);
   virtual bool setRP(int v);
   virtual void setRA(int v);
+  virtual void setRR(int v);
   virtual bool setRW(int v);
   void setSQ(int v);
   void columnSQ(int v);
@@ -198,6 +200,10 @@ void Motor::goHome()
 }
 
 void Motor::setRA(int v)
+{
+}
+
+void Motor::setRR(int v)
 {
 }
 

@@ -17,13 +17,17 @@ Notes:
 
 - ST stop motion: no argument.
 
-- RO rotate: no argument or argument=0 => continuously / argument>0 => argument is number of turns.
+- SA stop all: stop all motors;
 
-- RW rotate wave: rotate continuously with triangle speed variation (0-speed-0). Argument is number of periods per turn.
+- RO rotate: no argument or argument=0 => continuously / argument>0 => argument is number of turns. Steppers only.
 
-- RA rotate angle: argument is angle in degrees.
+- RW rotate wave: rotate continuously with triangle speed variation (0-speed-0). Argument is number of periods per turn. Steppers only.
 
-- RP rotate pause: argument is [turns:pause], no argument or argument=0 => 1 turn, 1s pause. Rotate a number of turns then pause, rotate, pause, etc.
+- RA rotate absolute: argument is angle in degrees. Same as RR for steppers.
+
+- RR rotate relative: argument is angle in degrees. Only for servos.
+
+- RP rotate pause: argument is [turns:pause], no argument or argument=0 => 1 turn, 1s pause. Rotate a number of turns then pause, rotate, pause, etc. Steppers only.
 
 - SQ sequence: argument is [angle:(0-2):...:(0-2)], sweep-like motion of angle. 0 means no motion (duration of sweep), 1 is sweep motion in current direction, 2 is sweep motion in opposite current direction. Up to 10 steps.
 

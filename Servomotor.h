@@ -16,6 +16,7 @@ class Servomotor : public Motor
   void SD(int v);
   void ST();
   void setRA(int v);
+  void setRR(int v);
   bool setRW(int v);
   bool setRP(int v);
   void goHome();
@@ -103,7 +104,7 @@ void Servomotor::ST()
   }
 }
 
-void Servomotor::setRA(int v)
+void Servomotor::setRR(int v)
 {
   v = (v <= 0) ? 0 : (v % (angleMax - angleMin));
   v = (dir > 0) ? -v : v;
@@ -111,6 +112,36 @@ void Servomotor::setRA(int v)
   Serial.print(v);
   Serial.println(" degrees");
   steps = abs(v) / 360.0 * nSteps;
+  currentSteps = 0;
+  if (mode == MODE_ST)
+  {
+    mode = MODE_RR;
+    timeMS = millis();
+  }
+  else
+  {
+    nextMode = MODE_RR;
+    ST();
+  }
+}
+
+void Servomotor::setRA(int v)
+{
+  v = (v < angleMin) ? angleMin : ((v > angleMax) ? angleMax : v);
+  Serial.print(">> move to ");
+  Serial.print(v);
+  Serial.println(" degrees");
+  if (v > angle)
+  {
+    v = v - angle;
+    currentDir = 1;
+  }
+  else
+  {
+    v = angle - v;
+    currentDir = 0;
+  }
+  steps = v / 360.0 * nSteps;
   currentSteps = 0;
   if (mode == MODE_ST)
   {
@@ -197,6 +228,7 @@ void Servomotor::action()
   case MODE_ST:
     break;
   case MODE_RA:
+  case MODE_RR:
     RA();
     break;
   case MODE_SQ:

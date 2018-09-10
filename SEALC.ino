@@ -34,7 +34,7 @@
 #define COMMAND_SD 2 // Set Direction
 #define COMMAND_RO 3 // ROtate
 #define COMMAND_ST 4 // STop
-#define COMMAND_RA 5 // Rotate Angle
+#define COMMAND_RA 5 // Rotate Angle (stepper) / Rotate Absolute (servo)
 #define COMMAND_NONE 6
 #define COMMAND_RW 7 // Rotate Wave
 #define COMMAND_SQ 8 // SeQuence
@@ -44,6 +44,8 @@
 #define COMMAND_GD 12 // Get Direction
 #define COMMAND_GM 13 // Get Mode
 #define COMMAND_GI 14 // Get Id
+#define COMMAND_SA 15 // Stop All
+#define COMMAND_RR 16 // Rotate Angle (stepper) / Rotate Relative (servo)
 
 // vars
 Motor *motors[N_MOTORS];
@@ -140,6 +142,9 @@ void processCommand(char a)
       case COMMAND_RA:
         motors[selectedMotor]->setRA(currentValue);
         break;
+      case COMMAND_RR:
+        motors[selectedMotor]->setRR(currentValue);
+        break;
       case COMMAND_RW:
         if (!motors[selectedMotor]->setRW(currentValue))
           currentCommand = COMMAND_NONE;
@@ -163,6 +168,13 @@ void processCommand(char a)
       case COMMAND_GI:
         motors[selectedMotor]->GI(selectedMotor);
         Serial.println(motors[selectedMotor]->getType());
+        break;
+      case COMMAND_SA:
+        for (int i = 0; i < N_MOTORS; i++)
+        {
+          motors[i]->setNextMode(MODE_ST);
+          motors[i]->ST();
+        }
         break;
       case COMMAND_SELECT:
       case COMMAND_ERROR:
@@ -196,6 +208,10 @@ void processCommand(char a)
       case 't':
       case 'T':
         currentCommand = COMMAND_ST; //ST
+        break;
+      case 'a':
+      case 'A':
+        currentCommand = COMMAND_SA; //ST
         break;
       case 'q':
       case 'Q':
