@@ -22,7 +22,6 @@
 #include "Servomotor.h"
 
 #define N_MOTORS 4
-#define MAX_COMMANDS 10
 // pins
 #define EN 8 // stepper motor enable, low level effective
 // serial commands
@@ -55,7 +54,6 @@ int currentCommand, currentValue;
 bool firstChar = true;
 char command[2];
 int iCommand;
-int commandQueue[MAX_COMMANDS];
 
 void displaySelectedMotor()
 {
@@ -131,32 +129,28 @@ void processCommand(char a)
         motors[selectedMotor]->SS(currentValue);
         break;
       case COMMAND_SD:
-        motors[selectedMotor]->SD(currentValue);
+        motors[selectedMotor]->fillQ(MODE_SD, currentValue);
         break;
       case COMMAND_RO:
-        if (!motors[selectedMotor]->setRO(currentValue))
-          currentCommand = COMMAND_NONE;
+        motors[selectedMotor]->fillQ(MODE_RO, currentValue);
         break;
       case COMMAND_ST:
-        motors[selectedMotor]->setNextMode(MODE_ST);
-        motors[selectedMotor]->ST();
+        motors[selectedMotor]->fillQ(MODE_ST, currentValue);
         break;
       case COMMAND_RA:
-        motors[selectedMotor]->setRA(currentValue);
+        motors[selectedMotor]->fillQ(MODE_RA, currentValue);
         break;
       case COMMAND_RR:
-        motors[selectedMotor]->setRR(currentValue);
+        motors[selectedMotor]->fillQ(MODE_RR, currentValue);
         break;
       case COMMAND_RW:
-        if (!motors[selectedMotor]->setRW(currentValue))
-          currentCommand = COMMAND_NONE;
+        motors[selectedMotor]->fillQ(MODE_RW, currentValue);
         break;
       case COMMAND_SQ:
         motors[selectedMotor]->setSQ(currentValue);
         break;
       case COMMAND_RP:
-        if (!motors[selectedMotor]->setRP(currentValue))
-          currentCommand = COMMAND_NONE;
+        motors[selectedMotor]->fillQ(MODE_RP, currentValue);
         break;
       case COMMAND_GS:
         motors[selectedMotor]->GS();

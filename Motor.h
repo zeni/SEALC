@@ -1,4 +1,5 @@
 #define MAX_SEQ 10 // max length of sequence for beat
+#define MAX_QUEUE 10
 //  modes
 #define MODE_ST 0
 #define MODE_RO 1
@@ -9,6 +10,7 @@
 #define MODE_HOME 6
 #define MODE_SD 7
 #define MODE_RP 8
+#define MODE_IDLE 9
 
 class Motor
 {
@@ -30,6 +32,10 @@ protected:
   int speed;            // en ms
   int speedRPM;         //en RPM
   bool newBeat;
+  int modesQ[MAX_QUEUE];
+  int valuesQ[MAX_QUEUE];
+  int sizeQ;
+  bool commandDone;
   //common
   virtual void RA();
   virtual void SQ();
@@ -58,11 +64,12 @@ public:
   void GD();
   void GM();
   void GI(int i);
+  virtual void fillQ(int m, int v);
 };
 
 Motor::Motor()
 {
-  mode = MODE_ST;
+  mode = MODE_IDLE;
   nextMode = mode;
   speedRPM = 12;
   SS(speedRPM);
@@ -73,9 +80,13 @@ Motor::Motor()
   currentDir = dir;
   for (int j = 0; j < MAX_SEQ; j++)
     seq[j] = 0;
+  for (int j = 0; j < MAX_QUEUE; j++)
+    modesQ[j] = MODE_IDLE;
+  sizeQ = 0;
   indexSeq = 0;
   lengthSeq = 0;
   angleSeq = 0;
+  commandDone = true;
   timeMS = millis();
 }
 
@@ -239,16 +250,8 @@ void Motor::setSQ(int v)
     Serial.print("|");
   }
   Serial.println();
-  if (mode == MODE_ST)
-  {
-    mode = MODE_SQ;
-    timeMS = millis();
-  }
-  else
-  {
-    nextMode = MODE_SQ;
-    ST();
-  }
+  mode = MODE_SQ;
+  timeMS = millis();
 }
 
 void Motor::action()
