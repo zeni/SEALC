@@ -22,6 +22,7 @@
 #include "Servomotor.h"
 
 #define N_MOTORS 4
+#define MAX_COMMANDS 10
 // pins
 #define EN 8 // stepper motor enable, low level effective
 // serial commands
@@ -54,6 +55,7 @@ int currentCommand, currentValue;
 bool firstChar = true;
 char command[2];
 int iCommand;
+int commandQueue[MAX_COMMANDS];
 
 void displaySelectedMotor()
 {
