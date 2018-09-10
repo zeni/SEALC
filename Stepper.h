@@ -193,9 +193,11 @@ bool Stepper::setRW(int v)
 
 void Stepper::deQ()
 {
+  commandDone = false;
   switch (modesQ[0])
   {
   case MODE_IDLE:
+    commandDone = true;
     break;
   case MODE_ST:
     mode = modesQ[0];
@@ -220,16 +222,18 @@ void Stepper::deQ()
     SD(valuesQ[0]);
     break;
   }
-  commandDone = false;
-  for (int i = 1; i < sizeQ; i++)
+  if (modesQ[0] != MODE_IDLE)
   {
-    modesQ[i - 1] = modesQ[i];
-    valuesQ[i - 1] = valuesQ[i];
+    for (int i = 1; i < MAX_QUEUE; i++)
+    {
+      modesQ[i - 1] = modesQ[i];
+      valuesQ[i - 1] = valuesQ[i];
+    }
+    modesQ[MAX_QUEUE - 1] = MODE_IDLE;
+    valuesQ[MAX_QUEUE - 1] = -1;
+    sizeQ--;
+    sizeQ = (sizeQ < 0) ? 0 : sizeQ;
   }
-  modesQ[MAX_QUEUE - 1] = MODE_IDLE;
-  valuesQ[MAX_QUEUE - 1] = -1;
-  sizeQ--;
-  sizeQ = (sizeQ < 0) ? 0 : sizeQ;
 }
 
 void Stepper::fillQ(int m, int v)
