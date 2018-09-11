@@ -164,6 +164,7 @@ void Motor::initWA()
 
 void Motor::setWA(int v)
 {
+  isPaused = false;
   v = (v < 0) ? 1000 : v;
   pause = v;
   Serial.print(">> wait ");
@@ -276,6 +277,7 @@ void Motor::action()
 
 void Motor::deQ()
 {
+  //Serial.println(modesQ[0]);
   switch (modesQ[0])
   {
   case MODE_IDLE:

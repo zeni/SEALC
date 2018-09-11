@@ -91,6 +91,7 @@ void Stepper::columnRP(int v)
 
 void Stepper::setRP(int v)
 {
+  isPaused = false;
   pause = (v <= 0) ? 1000 : v;
   turns = (turns <= 0) ? 1 : turns;
   steps = turns * nSteps;
@@ -158,6 +159,8 @@ void Stepper::action()
   switch (mode)
   {
   case MODE_IDLE:
+    deQ();
+    break;
   case MODE_ST:
     break;
   case MODE_SD:
@@ -230,7 +233,6 @@ void Stepper::RO()
 // rotation with pause
 void Stepper::RP()
 {
-  Serial.println(isPaused);
   if (speed > 0)
   {
     if (isPaused)

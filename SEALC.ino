@@ -181,8 +181,6 @@ void processCommand(char a)
         break;
       }
       currentValue = -1;
-      if ((command[0] == EOL) && (!firstChar))
-        motors[selectedMotor]->deQ();
       firstChar = true;
       iCommand = 0;
       command[0] = 0;
@@ -240,7 +238,7 @@ void processCommand(char a)
       case 'p':
       case 'P':
         currentCommand = COMMAND_RP; //RP
-        motors[selectedMotor]->initRP();
+        //motors[selectedMotor]->initRP();
         break;
       }
       break;
@@ -273,7 +271,7 @@ void processCommand(char a)
       case 'a':
       case 'A':
         currentCommand = COMMAND_WA; //GS
-        motors[selectedMotor]->initWA();
+        //motors[selectedMotor]->initWA();
         break;
       }
       break;
