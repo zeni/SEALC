@@ -35,36 +35,31 @@ protected:
   int modesQ[MAX_QUEUE];
   int valuesQ[MAX_QUEUE];
   int sizeQ;
-  bool commandDone;
-  //common
-  virtual void RA();
-  virtual void SQ();
-  virtual void goHome();
-  virtual void moveStep();
 
 public:
   Motor();
   void initSQ();
   virtual void initRP();
   void SS(int v);
-  virtual bool setRO(int v);
-  virtual bool setRP(int v);
+  virtual void setRO(int v);
+  virtual void setRP(int v);
   virtual void setRA(int v);
   virtual void setRR(int v);
-  virtual bool setRW(int v);
+  virtual void setRW(int v);
   void setSQ(int v);
   void columnSQ(int v);
   virtual void columnRP(int v);
   virtual void ST();
   virtual void action();
-  virtual void SD(int v);
+  virtual void setSD(int v);
   virtual String getType();
   void setNextMode(int m);
   void GS();
   void GD();
   void GM();
   void GI(int i);
-  virtual void fillQ(int m, int v);
+  void fillQ(int m, int v);
+  void deQ();
 };
 
 Motor::Motor()
@@ -86,7 +81,6 @@ Motor::Motor()
   indexSeq = 0;
   lengthSeq = 0;
   angleSeq = 0;
-  commandDone = true;
   timeMS = millis();
 }
 
@@ -145,7 +139,7 @@ void Motor::GM()
   }
 }
 
-void Motor::SD(int v)
+void Motor::setSD(int v)
 {
 }
 
@@ -191,22 +185,11 @@ void Motor::columnRP(int v)
 {
 }
 
-bool Motor::setRP(int v)
+void Motor::setRP(int v)
 {
-  return false;
-}
-
-bool Motor::setRO(int v)
-{
-  return false;
 }
 
 void Motor::ST()
-{
-}
-
-// stop and back to init pos
-void Motor::goHome()
 {
 }
 
@@ -214,13 +197,16 @@ void Motor::setRA(int v)
 {
 }
 
+void Motor::setRO(int v)
+{
+}
+
 void Motor::setRR(int v)
 {
 }
 
-bool Motor::setRW(int v)
+void Motor::setRW(int v)
 {
-  return false;
 }
 
 void Motor::setSQ(int v)
@@ -258,17 +244,53 @@ void Motor::action()
 {
 }
 
-// move one step
-void Motor::moveStep()
+void Motor::deQ()
 {
+  switch (modesQ[0])
+  {
+  case MODE_IDLE:
+    break;
+  case MODE_ST:
+    mode = modesQ[0];
+    break;
+  case MODE_RO:
+    setRO(valuesQ[0]);
+    break;
+  case MODE_RP:
+    setRP(valuesQ[0]);
+    break;
+  case MODE_RA:
+  case MODE_RR:
+    setRA(valuesQ[0]);
+    break;
+  case MODE_RW:
+    setRW(valuesQ[0]);
+    break;
+  case MODE_SQ:
+    setSQ(valuesQ[0]);
+    break;
+  case MODE_SD:
+    setSD(valuesQ[0]);
+    break;
+  }
+  if (modesQ[0] != MODE_IDLE)
+  {
+    for (int i = 1; i < MAX_QUEUE; i++)
+    {
+      modesQ[i - 1] = modesQ[i];
+      valuesQ[i - 1] = valuesQ[i];
+    }
+    modesQ[MAX_QUEUE - 1] = MODE_IDLE;
+    valuesQ[MAX_QUEUE - 1] = -1;
+    sizeQ--;
+    sizeQ = (sizeQ < 0) ? 0 : sizeQ;
+  }
 }
 
-// rotate a number of steps
-void Motor::RA()
+void Motor::fillQ(int m, int v)
 {
-}
-
-// continuous hammer movement with pattern of angles
-void Motor::SQ()
-{
+  modesQ[sizeQ] = m;
+  valuesQ[sizeQ] = v;
+  sizeQ++;
+  sizeQ = (sizeQ > MAX_QUEUE) ? MAX_QUEUE : sizeQ;
 }

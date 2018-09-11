@@ -11,15 +11,15 @@ class Servomotor : public Motor
   void servoStep();
   void moveStep();
   void initRP();
-  bool setRO(int v);
+  void setRO(int v);
   String getType();
-  void SD(int v);
+  void setSD(int v);
+  void SD();
   void ST();
   void setRA(int v);
   void setRR(int v);
-  bool setRW(int v);
-  bool setRP(int v);
-  void goHome();
+  void setRW(int v);
+  void setRP(int v);
   void action();
   void columnRP(int v);
 
@@ -48,26 +48,31 @@ String Servomotor::getType()
   return " (servo)";
 }
 
-void Servomotor::SD(int v)
+void Servomotor::setSD(int v)
 {
   v = (v > 0) ? 1 : v;
   dir = (v < 0) ? (1 - dir) : v;
-  if (mode == MODE_ST)
-    currentDir = dir;
+  mode = MODE_SD;
   Serial.print(">> dir: ");
   (dir > 0) ? Serial.println("CCW") : Serial.println("CW");
 }
 
-bool Servomotor::setRO(int v)
+void Servomotor::SD()
 {
-  Serial.println(">> servo has no RO command");
-  return false;
+  currentDir = dir;
+  deQ();
 }
 
-bool Servomotor::setRP(int v)
+void Servomotor::setRO(int v)
+{
+  Serial.println(">> servo has no RO command");
+  mode = MODE_RO;
+}
+
+void Servomotor::setRP(int v)
 {
   Serial.println(">> servo has no RP command");
-  return false;
+  mode = MODE_RP;
 }
 
 void Servomotor::initRP()
@@ -81,27 +86,10 @@ void Servomotor::columnRP(int v)
 void Servomotor::ST()
 {
   Serial.println(">> stop");
-  switch (mode)
-  {
-  case MODE_SQ:
-    if (currentDir == dir)
-      currentDir = 1 - dir;
-    currentSteps = steps - currentSteps;
-    stepsHome = steps;
-    mode = MODE_HOME;
-    timeMS = millis();
-    break;
-  case MODE_RA:
-    mode = MODE_HOME;
-    stepsHome = steps;
-    timeMS = millis();
-    break;
-  default:
-    mode = nextMode;
-    nextMode = MODE_ST;
-    currentSteps = 0;
-    angle = servo.read();
-  }
+  currentSteps = 0;
+  angle = servo.read();
+  mode = MODE_ST;
+  deQ();
 }
 
 void Servomotor::setRR(int v)
@@ -113,16 +101,8 @@ void Servomotor::setRR(int v)
   Serial.println(" degrees");
   steps = abs(v) / 360.0 * nSteps;
   currentSteps = 0;
-  if (mode == MODE_ST)
-  {
-    mode = MODE_RR;
-    timeMS = millis();
-  }
-  else
-  {
-    nextMode = MODE_RR;
-    ST();
-  }
+  mode = MODE_RR;
+  timeMS = millis();
 }
 
 void Servomotor::setRA(int v)
@@ -143,42 +123,14 @@ void Servomotor::setRA(int v)
   }
   steps = v / 360.0 * nSteps;
   currentSteps = 0;
-  if (mode == MODE_ST)
-  {
-    mode = MODE_RA;
-    timeMS = millis();
-  }
-  else
-  {
-    nextMode = MODE_RA;
-    ST();
-  }
+  mode = MODE_RA;
+  timeMS = millis();
 }
 
-bool Servomotor::setRW(int v)
+void Servomotor::setRW(int v)
 {
   Serial.println(">> servo has no RW command");
-  return false;
-}
-
-// stop and back to init pos
-void Servomotor::goHome()
-{
-  if ((millis() - timeMS) > speed)
-  {
-    if (currentSteps >= stepsHome)
-    {
-      currentSteps = 0;
-      mode = MODE_ST;
-      ST();
-    }
-    else
-    {
-      currentSteps++;
-      servoStep();
-      timeMS = millis();
-    }
-  }
+  mode = MODE_RW;
 }
 
 // one step servo
@@ -210,7 +162,6 @@ void Servomotor::moveStep()
 {
   if (currentSteps >= steps)
   {
-    mode = MODE_ST;
     ST();
   }
   else
@@ -225,6 +176,12 @@ void Servomotor::action()
 {
   switch (mode)
   {
+  case MODE_RO:
+  case MODE_RP:
+  case MODE_RW:
+    ST();
+    break;
+  case MODE_IDLE:
   case MODE_ST:
     break;
   case MODE_RA:
@@ -233,9 +190,6 @@ void Servomotor::action()
     break;
   case MODE_SQ:
     SQ();
-    break;
-  case MODE_HOME:
-    goHome();
     break;
   }
 }
@@ -262,6 +216,7 @@ void Servomotor::SQ()
   {
     if (newBeat)
     {
+      deQ();
       newBeat = false;
       int a = floor(indexSeq / 2);
       switch (seq[a])

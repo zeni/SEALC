@@ -147,7 +147,7 @@ void processCommand(char a)
         motors[selectedMotor]->fillQ(MODE_RW, currentValue);
         break;
       case COMMAND_SQ:
-        motors[selectedMotor]->setSQ(currentValue);
+        motors[selectedMotor]->fillQ(MODE_SQ, currentValue);
         break;
       case COMMAND_RP:
         motors[selectedMotor]->fillQ(MODE_RP, currentValue);
@@ -168,7 +168,6 @@ void processCommand(char a)
       case COMMAND_SA:
         for (int i = 0; i < N_MOTORS; i++)
         {
-          motors[i]->setNextMode(MODE_ST);
           motors[i]->ST();
         }
         break;
@@ -178,6 +177,8 @@ void processCommand(char a)
         break;
       }
       currentValue = -1;
+      if ((command[0] == EOL) && (!firstChar))
+        motors[selectedMotor]->deQ();
       firstChar = true;
       iCommand = 0;
       command[0] = 0;
