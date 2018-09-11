@@ -4,6 +4,8 @@ class Stepper : public Motor
   int waveDir; // increasing / decreasing speed
   int turns;   // for rotate (0=continuous rotation)
   int realSteps;
+  int seq[MAX_SEQ]; // seq. of angles for beat
+  int angleSeq;     // angle value for seq.
   void RO();
   void RP();
   void RA();
@@ -24,6 +26,9 @@ class Stepper : public Motor
   void WA();
   void action();
   String getType();
+  void initSQ();
+  void setSQ(int v);
+  void columnSQ(int v);
 
 public:
   Stepper();
@@ -43,6 +48,9 @@ Stepper::Stepper(int n, int pin_stp, int pin_dir) : Motor()
   pinMode(pinSTP, OUTPUT);
   nSteps = n;
   realSteps = currentSteps;
+  for (int j = 0; j < MAX_SEQ; j++)
+    seq[j] = 0;
+  angleSeq = 0;
 }
 
 String Stepper::getType()
@@ -132,6 +140,57 @@ void Stepper::setRW(int v)
   timeMS = millis();
 }
 
+void Stepper::initSQ()
+{
+  angleSeq = 0;
+  indexSeq = 0;
+  lengthSeq = 0;
+  newBeat = true;
+}
+
+void Stepper::columnSQ(int v)
+{
+  v = (v <= 0) ? 0 : v;
+  if (angleSeq == 0)
+    angleSeq = v;
+  else
+  {
+    seq[indexSeq] = v;
+    indexSeq++;
+  }
+}
+
+void Stepper::setSQ(int v)
+{
+  Serial.print(">> sequence: ");
+  currentDir = dir;
+  if (angleSeq == 0)
+  {
+    angleSeq = v;
+    seq[indexSeq] = 1;
+    lengthSeq = 1;
+  }
+  else
+  {
+    seq[indexSeq] = v;
+    indexSeq++;
+    lengthSeq = indexSeq;
+  }
+  angleSeq = angleSeq / 360.0 * nSteps;
+  indexSeq = 0;
+  steps = angleSeq;
+  angleSeq = 0;
+  currentSteps = 0;
+  for (int i = 0; i < lengthSeq; i++)
+  {
+    Serial.print(seq[i]);
+    Serial.print("|");
+  }
+  Serial.println();
+  mode = MODE_SQ;
+  timeMS = millis();
+}
+
 // one step stepper
 void Stepper::stepperStep()
 {
@@ -162,6 +221,7 @@ void Stepper::action()
     deQ();
     break;
   case MODE_ST:
+    ST();
     break;
   case MODE_SD:
     SD();

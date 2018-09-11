@@ -1,25 +1,23 @@
 /****************** PLC = Physical Live Coding ********************
-  Live coding on stepper motors and pots, piezo, hammer, tools,
+  Live coding on stepper, servo motors and pots, piezo, hammer, tools,
   objects, etc. to create sounds.
 
   By 23N!
   Created: 2018/08/31
-  Updated: 2018/09/07
+  Updated: 2018/09/11
 
   TODO:
   - Error messages
   - wave as a rotate option ?
-  - new command: rotate x turns, pause, rotate x turns, ...
   - servo: use writeMicroseconds instead ?
-  - SA: stop all
-  - RR: rotate relative
-  - RA: rotate absolute (servo only)
   - Stepper: keep track of zero/origin ?
+  - add vibro
 *******************************************************************/
 
 #include "Motor.h"
 #include "Stepper.h"
 #include "Servomotor.h"
+#include "Vibro.h"
 
 #define N_MOTORS 4
 // pins
@@ -286,7 +284,8 @@ void processCommand(char a)
 
 void setup()
 {
-  motors[0] = new Stepper(200, 2, 5);
+  //motors[0] = new Stepper(200, 2, 5);
+  motors[0] = new Vibro(2);
   motors[1] = new Stepper(48, 3, 6);
   motors[2] = new Servomotor(11, 15, 195);
   motors[3] = new Servomotor(10, 15, 195);

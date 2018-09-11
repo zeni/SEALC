@@ -2,7 +2,7 @@
 # System for Electro-Acoustic Live Coding
 
 # Description
-Microcontroller program to live code motors (steppers and servos) through a serial terminal.
+Microcontroller program to live code motors (steppers, servos and vibros) through a serial terminal.
 
  [motor# (0-9)]command[argument]
 
@@ -19,7 +19,7 @@ Notes:
 
 - SA stop all: stop all motors;
 
-- RO rotate: no argument or argument=0 => continuously / argument>0 => argument is number of turns. Steppers only.
+- RO rotate: for steppers, no argument or argument=0 => continuously / argument>0 => argument is number of turns. For vibros, no argument or argument=0 => continuously ON / argument>0 => argument is ON duration.
 
 - RW rotate wave: rotate continuously with triangle speed variation (0-speed-0). Argument is number of periods per turn. Steppers only.
 
@@ -27,9 +27,9 @@ Notes:
 
 - RR rotate relative: argument is angle in degrees. Only for servos.
 
-- RP rotate pause: argument is [turns:pause], no argument or argument=0 => 1 turn, 1s pause. Rotate a number of turns then pause, rotate, pause, etc. Steppers only.
+- RP rotate pause: for steppers, argument is [turns:pause], no argument or argument=0 => 1 turn, 1s pause. Rotate a number of turns then pause, rotate, pause, etc. For vibros, argument is [duration ON:duration OFF], no argument or argument=0 => 1s ON, 1s OFF.
 
-- SQ sequence: argument is [angle:(0-2):...:(0-2)], sweep-like motion of angle. 0 means no motion (duration of sweep), 1 is sweep motion in current direction, 2 is sweep motion in opposite current direction. Up to 10 steps.
+- SQ sequence: for servos and steppers, argument is [angle:(0-2):...:(0-2)], sweep-like motion of angle. 0 means no motion (duration of sweep), 1 is sweep motion in current direction, 2 is sweep motion in opposite current direction. Up to 10 steps. For vibros, argument is [duration:state:...:duration:state]. Duration in ms, state is ON (1) or OFF (0).
 
 - GS: get speed in RPM.
 
@@ -38,5 +38,7 @@ Notes:
 - GM: get mode.
 
 - GI: get selected motor id and type.
+
+- WA: wait: argument is wait time in ms.
 
 

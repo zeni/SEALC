@@ -24,10 +24,8 @@ protected:
   int dir;
   int currentDir;
   int currentSteps;     // for move/hammer
-  int seq[MAX_SEQ];     // seq. of angles for beat
   int indexSeq;         // current position in sequence
   int lengthSeq;        // length of seq.
-  int angleSeq;         // angle value for seq.
   unsigned long timeMS; // for speed
   int speed;            // en ms
   int speedRPM;         //en RPM
@@ -40,7 +38,6 @@ protected:
 
 public:
   Motor();
-  void initSQ();
   virtual void initRP();
   void SS(int v);
   virtual void setRO(int v);
@@ -50,8 +47,9 @@ public:
   virtual void setRW(int v);
   void setWA(int v);
   virtual void VA();
-  void setSQ(int v);
-  void columnSQ(int v);
+  virtual void initSQ();
+  virtual void setSQ(int v);
+  virtual void columnSQ(int v);
   virtual void columnRP(int v);
   virtual void ST();
   virtual void action();
@@ -78,14 +76,11 @@ Motor::Motor()
   stepsHome = steps;
   dir = 0;
   currentDir = dir;
-  for (int j = 0; j < MAX_SEQ; j++)
-    seq[j] = 0;
   for (int j = 0; j < MAX_QUEUE; j++)
     modesQ[j] = MODE_IDLE;
   sizeQ = 0;
   indexSeq = 0;
   lengthSeq = 0;
-  angleSeq = 0;
   timeMS = millis();
   pause = 1000;
   isPaused = false;
@@ -206,53 +201,14 @@ void Motor::ST()
 
 void Motor::initSQ()
 {
-  angleSeq = 0;
-  indexSeq = 0;
-  lengthSeq = 0;
-  newBeat = true;
 }
 
 void Motor::columnSQ(int v)
 {
-  v = (v <= 0) ? 0 : v;
-  if (angleSeq == 0)
-    angleSeq = v;
-  else
-  {
-    seq[indexSeq] = v;
-    indexSeq++;
-  }
 }
 
 void Motor::setSQ(int v)
 {
-  Serial.print(">> sequence: ");
-  currentDir = dir;
-  if (angleSeq == 0)
-  {
-    angleSeq = v;
-    seq[indexSeq] = 1;
-    lengthSeq = 1;
-  }
-  else
-  {
-    seq[indexSeq] = v;
-    indexSeq++;
-    lengthSeq = indexSeq;
-  }
-  angleSeq = angleSeq / 360.0 * nSteps;
-  indexSeq = 0;
-  steps = angleSeq;
-  angleSeq = 0;
-  currentSteps = 0;
-  for (int i = 0; i < lengthSeq; i++)
-  {
-    Serial.print(seq[i]);
-    Serial.print("|");
-  }
-  Serial.println();
-  mode = MODE_SQ;
-  timeMS = millis();
 }
 
 void Motor::initRP()

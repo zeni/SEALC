@@ -5,7 +5,9 @@ class Servomotor : public Motor
   Servo servo;
   int angleMin, angleMax;
   int pin;
-  int angle; // current angle
+  int angle;        // current angle
+  int seq[MAX_SEQ]; // seq. of angles for beat
+  int angleSeq;     // angle value for seq.
   void RA();
   void SQ();
   void servoStep();
@@ -23,6 +25,9 @@ class Servomotor : public Motor
   void WA();
   void action();
   void columnRP(int v);
+  void initSQ();
+  void setSQ(int v);
+  void columnSQ(int v);
 
 public:
   Servomotor();
@@ -42,6 +47,9 @@ Servomotor::Servomotor(int p, int amin, int amax) : Motor()
   servo.attach(pin);
   servo.write(angleMin);
   angle = servo.read();
+  for (int j = 0; j < MAX_SEQ; j++)
+    seq[j] = 0;
+  angleSeq = 0;
 }
 
 String Servomotor::getType()
@@ -119,6 +127,57 @@ void Servomotor::setRW(int v)
   mode = MODE_RW;
 }
 
+void Servomotor::initSQ()
+{
+  angleSeq = 0;
+  indexSeq = 0;
+  lengthSeq = 0;
+  newBeat = true;
+}
+
+void Servomotor::columnSQ(int v)
+{
+  v = (v <= 0) ? 0 : v;
+  if (angleSeq == 0)
+    angleSeq = v;
+  else
+  {
+    seq[indexSeq] = v;
+    indexSeq++;
+  }
+}
+
+void Servomotor::setSQ(int v)
+{
+  Serial.print(">> sequence: ");
+  currentDir = dir;
+  if (angleSeq == 0)
+  {
+    angleSeq = v;
+    seq[indexSeq] = 1;
+    lengthSeq = 1;
+  }
+  else
+  {
+    seq[indexSeq] = v;
+    indexSeq++;
+    lengthSeq = indexSeq;
+  }
+  angleSeq = angleSeq / 360.0 * nSteps;
+  indexSeq = 0;
+  steps = angleSeq;
+  angleSeq = 0;
+  currentSteps = 0;
+  for (int i = 0; i < lengthSeq; i++)
+  {
+    Serial.print(seq[i]);
+    Serial.print("|");
+  }
+  Serial.println();
+  mode = MODE_SQ;
+  timeMS = millis();
+}
+
 // one step servo
 void Servomotor::servoStep()
 {
@@ -165,10 +224,10 @@ void Servomotor::action()
   case MODE_RO:
   case MODE_RP:
   case MODE_RW:
+  case MODE_ST:
     ST();
     break;
   case MODE_IDLE:
-  case MODE_ST:
     break;
   case MODE_RA:
   case MODE_RR:
