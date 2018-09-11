@@ -46,6 +46,7 @@
 #define COMMAND_GI 14 // Get Id
 #define COMMAND_SA 15 // Stop All
 #define COMMAND_RR 16 // Rotate Angle (stepper) / Rotate Relative (servo)
+#define COMMAND_WA 17 // WAit command (ms)
 
 // vars
 Motor *motors[N_MOTORS];
@@ -151,6 +152,9 @@ void processCommand(char a)
         break;
       case COMMAND_RP:
         motors[selectedMotor]->fillQ(MODE_RP, currentValue);
+        break;
+      case COMMAND_WA:
+        motors[selectedMotor]->fillQ(MODE_WA, currentValue);
         break;
       case COMMAND_GS:
         motors[selectedMotor]->GS();
@@ -259,6 +263,17 @@ void processCommand(char a)
       case 'i':
       case 'I':
         currentCommand = COMMAND_GI; //GI
+        break;
+      }
+      break;
+    case 'w':
+    case 'W':
+      switch (command[1])
+      {
+      case 'a':
+      case 'A':
+        currentCommand = COMMAND_WA; //GS
+        motors[selectedMotor]->initWA();
         break;
       }
       break;

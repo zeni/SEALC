@@ -7,7 +7,7 @@
 #define MODE_RR 3
 #define MODE_RW 4
 #define MODE_SQ 5
-#define MODE_HOME 6
+#define MODE_WA 6
 #define MODE_SD 7
 #define MODE_RP 8
 #define MODE_IDLE 9
@@ -35,6 +35,8 @@ protected:
   int modesQ[MAX_QUEUE];
   int valuesQ[MAX_QUEUE];
   int sizeQ;
+  int pause;
+  bool isPaused;
 
 public:
   Motor();
@@ -46,6 +48,8 @@ public:
   virtual void setRA(int v);
   virtual void setRR(int v);
   virtual void setRW(int v);
+  void setWA(int v);
+  virtual void VA();
   void setSQ(int v);
   void columnSQ(int v);
   virtual void columnRP(int v);
@@ -60,6 +64,7 @@ public:
   void GI(int i);
   void fillQ(int m, int v);
   void deQ();
+  void initWA();
 };
 
 Motor::Motor()
@@ -82,6 +87,8 @@ Motor::Motor()
   lengthSeq = 0;
   angleSeq = 0;
   timeMS = millis();
+  pause = 1000;
+  isPaused = false;
 }
 
 String Motor::getType()
@@ -121,20 +128,26 @@ void Motor::GM()
   case MODE_RA:
     Serial.println("RA");
     break;
+  case MODE_RR:
+    Serial.println("RR");
+    break;
+  case MODE_WA:
+    Serial.println("WA");
+    break;
   case MODE_RW:
     Serial.println("RW");
     break;
   case MODE_RP:
     Serial.println("RP");
     break;
-  case MODE_HOME:
-    Serial.println("HOME");
-    break;
   case MODE_SQ:
     Serial.println("SQ");
     break;
   case MODE_SD:
     Serial.println("SD");
+    break;
+  case MODE_IDLE:
+    Serial.println("IDLE");
     break;
   }
 }
@@ -143,54 +156,22 @@ void Motor::setSD(int v)
 {
 }
 
-void Motor::setNextMode(int m)
+void Motor::initWA()
 {
-  nextMode = m;
+  pause = 1000;
+  isPaused = false;
 }
 
-void Motor::SS(int v)
+void Motor::setWA(int v)
 {
-  speedRPM = (v > 0) ? v : 0;
-  speed = (speedRPM > 0) ? (floor(60.0 / (speedRPM * nSteps) * 1000)) : 0;
-  Serial.print(">> speed: ");
-  Serial.print(speedRPM);
-  Serial.println(" RPM");
-}
-
-void Motor::initSQ()
-{
-  angleSeq = 0;
-  indexSeq = 0;
-  lengthSeq = 0;
-  newBeat = true;
-}
-
-void Motor::initRP()
-{
-}
-
-void Motor::columnSQ(int v)
-{
-  v = (v <= 0) ? 0 : v;
-  if (angleSeq == 0)
-    angleSeq = v;
-  else
-  {
-    seq[indexSeq] = v;
-    indexSeq++;
-  }
-}
-
-void Motor::columnRP(int v)
-{
-}
-
-void Motor::setRP(int v)
-{
-}
-
-void Motor::ST()
-{
+  v = (v < 0) ? 1000 : v;
+  pause = v;
+  Serial.print(">> wait ");
+  Serial.print(pause);
+  Serial.println(" ms");
+  pause = v;
+  mode = MODE_WA;
+  timeMS = millis();
 }
 
 void Motor::setRA(int v)
@@ -207,6 +188,39 @@ void Motor::setRR(int v)
 
 void Motor::setRW(int v)
 {
+}
+
+void Motor::SS(int v)
+{
+  speedRPM = (v > 0) ? v : 0;
+  speed = (speedRPM > 0) ? (floor(60.0 / (speedRPM * nSteps) * 1000)) : 0;
+  Serial.print(">> speed: ");
+  Serial.print(speedRPM);
+  Serial.println(" RPM");
+}
+
+void Motor::ST()
+{
+}
+
+void Motor::initSQ()
+{
+  angleSeq = 0;
+  indexSeq = 0;
+  lengthSeq = 0;
+  newBeat = true;
+}
+
+void Motor::columnSQ(int v)
+{
+  v = (v <= 0) ? 0 : v;
+  if (angleSeq == 0)
+    angleSeq = v;
+  else
+  {
+    seq[indexSeq] = v;
+    indexSeq++;
+  }
 }
 
 void Motor::setSQ(int v)
@@ -240,6 +254,22 @@ void Motor::setSQ(int v)
   timeMS = millis();
 }
 
+void Motor::initRP()
+{
+}
+
+void Motor::columnRP(int v)
+{
+}
+
+void Motor::setRP(int v)
+{
+}
+
+void Motor::VA()
+{
+}
+
 void Motor::action()
 {
 }
@@ -271,6 +301,9 @@ void Motor::deQ()
     break;
   case MODE_SD:
     setSD(valuesQ[0]);
+    break;
+  case MODE_WA:
+    setWA(valuesQ[0]);
     break;
   }
   if (modesQ[0] != MODE_IDLE)

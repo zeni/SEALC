@@ -4,8 +4,6 @@ class Stepper : public Motor
   int waveDir; // increasing / decreasing speed
   int turns;   // for rotate (0=continuous rotation)
   int realSteps;
-  int pause;     // for RP in ms
-  bool isPaused; // for RP, status
   void RO();
   void RP();
   void RA();
@@ -23,6 +21,7 @@ class Stepper : public Motor
   void setRW(int v);
   void columnRP(int v);
   void ST();
+  void WA();
   void action();
   String getType();
 
@@ -44,8 +43,6 @@ Stepper::Stepper(int n, int pin_stp, int pin_dir) : Motor()
   pinMode(pinSTP, OUTPUT);
   nSteps = n;
   realSteps = currentSteps;
-  pause = 1000;
-  isPaused = false;
 }
 
 String Stepper::getType()
@@ -60,13 +57,6 @@ void Stepper::setSD(int v)
   mode = MODE_SD;
   Serial.print(">> dir: ");
   (dir > 0) ? Serial.println("CCW") : Serial.println("CW");
-}
-
-void Stepper::SD()
-{
-  currentDir = dir;
-  digitalWrite(pinDIR, dir);
-  deQ();
 }
 
 void Stepper::setRO(int v)
@@ -94,6 +84,11 @@ void Stepper::initRP()
   isPaused = false;
 }
 
+void Stepper::columnRP(int v)
+{
+  turns = (v <= 0) ? 1 : v;
+}
+
 void Stepper::setRP(int v)
 {
   pause = (v <= 0) ? 1000 : v;
@@ -103,42 +98,6 @@ void Stepper::setRP(int v)
   Serial.println(String(turns) + " turn(s)");
   mode = MODE_RP;
   timeMS = millis();
-}
-
-void Stepper::columnRP(int v)
-{
-  turns = (v <= 0) ? 1 : v;
-}
-
-void Stepper::ST()
-{
-  Serial.println(">> stop");
-  currentSteps = 0;
-  digitalWrite(pinSTP, LOW);
-  mode = MODE_ST;
-  deQ();
-}
-
-// one step stepper
-void Stepper::stepperStep()
-{
-  digitalWrite(pinSTP, LOW);
-  digitalWrite(pinSTP, HIGH);
-}
-
-// move one step
-void Stepper::moveStep()
-{
-  if (currentSteps >= steps)
-  {
-    ST();
-  }
-  else
-  {
-    currentSteps++;
-    stepperStep();
-    timeMS = millis();
-  }
 }
 
 void Stepper::setRR(int v)
@@ -172,6 +131,28 @@ void Stepper::setRW(int v)
   timeMS = millis();
 }
 
+// one step stepper
+void Stepper::stepperStep()
+{
+  digitalWrite(pinSTP, LOW);
+  digitalWrite(pinSTP, HIGH);
+}
+
+// move one step
+void Stepper::moveStep()
+{
+  if (currentSteps >= steps)
+  {
+    ST();
+  }
+  else
+  {
+    currentSteps++;
+    stepperStep();
+    timeMS = millis();
+  }
+}
+
 void Stepper::action()
 {
   switch (mode)
@@ -197,8 +178,26 @@ void Stepper::action()
   case MODE_SQ:
     SQ();
     break;
+  case MODE_WA:
+    WA();
+    break;
   }
-  return true;
+}
+
+void Stepper::ST()
+{
+  Serial.println(">> stop");
+  currentSteps = 0;
+  digitalWrite(pinSTP, LOW);
+  mode = MODE_IDLE;
+  deQ();
+}
+
+void Stepper::SD()
+{
+  currentDir = dir;
+  digitalWrite(pinDIR, dir);
+  deQ();
 }
 
 // rotation
@@ -315,6 +314,23 @@ void Stepper::RW()
   {
     ST();
     Serial.println("Stopped: speed is 0.");
+  }
+}
+
+void Stepper::WA()
+{
+  if (isPaused)
+  {
+    if ((millis() - timeMS) > pause)
+    {
+      isPaused = false;
+      ST();
+    }
+  }
+  else
+  {
+    isPaused = true;
+    digitalWrite(pinSTP, LOW);
   }
 }
 

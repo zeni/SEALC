@@ -20,6 +20,7 @@ class Servomotor : public Motor
   void setRR(int v);
   void setRW(int v);
   void setRP(int v);
+  void WA();
   void action();
   void columnRP(int v);
 
@@ -57,22 +58,10 @@ void Servomotor::setSD(int v)
   (dir > 0) ? Serial.println("CCW") : Serial.println("CW");
 }
 
-void Servomotor::SD()
-{
-  currentDir = dir;
-  deQ();
-}
-
 void Servomotor::setRO(int v)
 {
   Serial.println(">> servo has no RO command");
   mode = MODE_RO;
-}
-
-void Servomotor::setRP(int v)
-{
-  Serial.println(">> servo has no RP command");
-  mode = MODE_RP;
 }
 
 void Servomotor::initRP()
@@ -83,13 +72,10 @@ void Servomotor::columnRP(int v)
 {
 }
 
-void Servomotor::ST()
+void Servomotor::setRP(int v)
 {
-  Serial.println(">> stop");
-  currentSteps = 0;
-  angle = servo.read();
-  mode = MODE_ST;
-  deQ();
+  Serial.println(">> servo has no RP command");
+  mode = MODE_RP;
 }
 
 void Servomotor::setRR(int v)
@@ -191,7 +177,25 @@ void Servomotor::action()
   case MODE_SQ:
     SQ();
     break;
+  case MODE_WA:
+    WA();
+    break;
   }
+}
+
+void Servomotor::ST()
+{
+  Serial.println(">> stop");
+  currentSteps = 0;
+  angle = servo.read();
+  mode = MODE_ST;
+  deQ();
+}
+
+void Servomotor::SD()
+{
+  currentDir = dir;
+  deQ();
 }
 
 // rotate a number of steps
@@ -260,4 +264,18 @@ void Servomotor::SQ()
     ST();
     Serial.println("Stopped: speed is 0.");
   }
+}
+
+void Servomotor::WA()
+{
+  if (isPaused)
+  {
+    if ((millis() - timeMS) > pause)
+    {
+      isPaused = false;
+      ST();
+    }
+  }
+  else
+    isPaused = true;
 }
