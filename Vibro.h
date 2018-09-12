@@ -39,6 +39,7 @@ Vibro::Vibro() : Motor()
 Vibro::Vibro(int p) : Motor()
 {
     pin = p;
+    speed = 0;
     isOn = false;
     pinMode(pin, OUTPUT);
     digitalWrite(pin, LOW);

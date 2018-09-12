@@ -50,6 +50,7 @@ Servomotor::Servomotor(int p, int amin, int amax) : Motor()
   for (int j = 0; j < MAX_SEQ; j++)
     seq[j] = 0;
   angleSeq = 0;
+  speed = (speedRPM > 0) ? (floor(60.0 / (speedRPM * nSteps) * 1000)) : 0;
 }
 
 String Servomotor::getType()

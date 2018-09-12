@@ -11,7 +11,6 @@
   - wave as a rotate option ?
   - servo: use writeMicroseconds instead ?
   - Stepper: keep track of zero/origin ?
-  - add vibro
 *******************************************************************/
 
 #include "Motor.h"
@@ -19,7 +18,7 @@
 #include "Servomotor.h"
 #include "Vibro.h"
 
-#define N_MOTORS 4
+#define MAX_MOTORS 10
 // pins
 #define EN 8 // stepper motor enable, low level effective
 // serial commands
@@ -45,14 +44,26 @@
 #define COMMAND_SA 15 // Stop All
 #define COMMAND_RR 16 // Rotate Angle (stepper) / Rotate Relative (servo)
 #define COMMAND_WA 17 // WAit command (ms)
+// states
+#define STATE_SETUP 0
+#define STATE_READY 1
+// motor types
+#define TYPE_STEPPER 0
+#define TYPE_SERVO 1
+#define TYPE_VIBRO 2
+#define TYPE_UNKNOWN -1
 
 // vars
-Motor *motors[N_MOTORS];
+Motor *motors[MAX_MOTORS];
 int selectedMotor;
 int currentCommand, currentValue;
 bool firstChar = true;
 char command[2];
 int iCommand;
+int nMotors, iMotors;
+int state;
+int motorType, nMotorArg, iMotorArg;
+int args[3];
 
 void displaySelectedMotor()
 {
@@ -66,7 +77,7 @@ void displayIntro()
   Serial.println("*************************************************");
   Serial.println("* SEALC: System for Electo-Acoustic Live Coding *");
   Serial.println("* by 23N! - 2018/08                             *");
-  Serial.println("*************************************************");
+  Serial.print("************************************************<");
 }
 
 void updateValue(char a)
@@ -85,8 +96,8 @@ void processCommand(char a)
     {
       currentCommand = COMMAND_SELECT;
       selectedMotor = a - 48;
-      if (selectedMotor >= N_MOTORS)
-        selectedMotor = N_MOTORS - 1;
+      if (selectedMotor >= nMotors)
+        selectedMotor = nMotors - 1;
       displaySelectedMotor();
       firstChar = false;
     }
@@ -168,7 +179,7 @@ void processCommand(char a)
         Serial.println(motors[selectedMotor]->getType());
         break;
       case COMMAND_SA:
-        for (int i = 0; i < N_MOTORS; i++)
+        for (int i = 0; i < nMotors; i++)
         {
           motors[i]->ST();
         }
@@ -282,17 +293,89 @@ void processCommand(char a)
   }
 }
 
+void processSetup(char a)
+{
+  //Serial.println(a);
+  if ((a >= 48) && (a < 58))
+  {
+    updateValue(a);
+  }
+  else
+  {
+    switch (a)
+    {
+    case EOL:
+    case SEPARATOR:
+      if (nMotors == 0)
+      {
+        nMotors = currentValue;
+        iMotors = 0;
+        currentValue = -1;
+      }
+      else
+      {
+        if (motorType == TYPE_UNKNOWN)
+        {
+          motorType = currentValue;
+          currentValue = -1;
+        }
+        else
+        {
+          args[iMotorArg++] = currentValue;
+          currentValue = -1;
+          if (iMotorArg == 3)
+          {
+            switch (motorType)
+            {
+            case TYPE_STEPPER:
+              motors[iMotors] = new Stepper(args[0], args[1], args[2]);
+              break;
+            case TYPE_SERVO:
+              motors[iMotors] = new Servomotor(args[0], args[1], args[2]);
+              break;
+            case TYPE_VIBRO:
+              motors[iMotors] = new Vibro(args[0]);
+              break;
+            }
+            iMotors++;
+            if (iMotors == nMotors)
+            {
+              Serial.println();
+              displaySelectedMotor();
+              currentCommand = COMMAND_NONE;
+              state = STATE_READY;
+            }
+            else
+            {
+              iMotorArg = 0;
+              motorType = TYPE_UNKNOWN;
+            }
+          }
+        }
+      }
+      break;
+    default:
+      currentValue = -1;
+      break;
+    }
+  }
+}
+
 void setup()
 {
+  nMotors = 0;
+  state = STATE_SETUP;
+  motorType = TYPE_UNKNOWN;
+  nMotorArg = 0;
+  iMotorArg = 0;
   //motors[0] = new Stepper(200, 2, 5);
-  motors[0] = new Vibro(2);
-  motors[1] = new Stepper(48, 3, 6);
-  motors[2] = new Servomotor(11, 15, 195);
-  motors[3] = new Servomotor(10, 15, 195);
+  //motors[0] = new Vibro(2);
+  //motors[1] = new Stepper(48, 3, 6);
+  //motors[2] = new Servomotor(11, 15, 195);
+  //motors[3] = new Servomotor(10, 15, 195);
   selectedMotor = 0;
   Serial.begin(115200);
   displayIntro();
-  displaySelectedMotor();
   pinMode(EN, OUTPUT);
   digitalWrite(EN, LOW);
   currentValue = -1;
@@ -304,12 +387,24 @@ void setup()
 
 void loop()
 {
-  // get serial commands
-  if (Serial.available())
+  switch (state)
   {
-    char a = Serial.read();
-    processCommand(a);
+  case STATE_READY:
+    // get serial commands
+    if (Serial.available())
+    {
+      char a = Serial.read();
+      processCommand(a);
+    }
+    for (int i = 0; i < nMotors; i++)
+      motors[i]->action();
+    break;
+  case STATE_SETUP:
+    if (Serial.available())
+    {
+      char a = Serial.read();
+      processSetup(a);
+    }
+    break;
   }
-  for (int i = 0; i < N_MOTORS; i++)
-    motors[i]->action();
 }

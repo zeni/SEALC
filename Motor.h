@@ -70,7 +70,6 @@ Motor::Motor()
   mode = MODE_IDLE;
   nextMode = mode;
   speedRPM = 12;
-  SS(speedRPM);
   currentSteps = 0;
   steps = 0;
   stepsHome = steps;
