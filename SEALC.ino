@@ -295,7 +295,6 @@ void processCommand(char a)
 
 void processSetup(char a)
 {
-  //Serial.println(a);
   if ((a >= 48) && (a < 58))
   {
     updateValue(a);
@@ -340,7 +339,7 @@ void processSetup(char a)
             iMotors++;
             if (iMotors == nMotors)
             {
-              Serial.println();
+              Serial.println("");
               displaySelectedMotor();
               currentCommand = COMMAND_NONE;
               state = STATE_READY;
@@ -368,11 +367,6 @@ void setup()
   motorType = TYPE_UNKNOWN;
   nMotorArg = 0;
   iMotorArg = 0;
-  //motors[0] = new Stepper(200, 2, 5);
-  //motors[0] = new Vibro(2);
-  //motors[1] = new Stepper(48, 3, 6);
-  //motors[2] = new Servomotor(11, 15, 195);
-  //motors[3] = new Servomotor(10, 15, 195);
   selectedMotor = 0;
   Serial.begin(115200);
   displayIntro();
