@@ -222,6 +222,9 @@ void Servomotor::action()
 {
   switch (mode)
   {
+  case MODE_IDLE:
+    deQ();
+    break;
   case MODE_RO:
   case MODE_RP:
   case MODE_RW:

@@ -284,7 +284,7 @@ void Vibro::SQ()
     if (newBeat)
     {
         deQ();
-        isOn = stateSeq[indexSeq];
+        isOn = stateSeq[indexSeq] > 0;
         if (isOn)
             digitalWrite(pin, HIGH);
         else
