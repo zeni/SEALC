@@ -18,7 +18,6 @@ protected:
   int id;
   int nSteps;
   int mode;
-  int nextMode;
   int steps;     // for move/hammer
   int stepsHome; // steps for homing
   int dir;
@@ -46,7 +45,6 @@ public:
   virtual void setRR(int v);
   virtual void setRW(int v);
   void setWA(int v);
-  virtual void VA();
   virtual void initSQ();
   virtual void setSQ(int v);
   virtual void columnSQ(int v);
@@ -55,7 +53,6 @@ public:
   virtual void action();
   virtual void setSD(int v);
   virtual String getType();
-  void setNextMode(int m);
   void GS();
   void GD();
   void GM();
@@ -68,7 +65,6 @@ public:
 Motor::Motor()
 {
   mode = MODE_IDLE;
-  nextMode = mode;
   speedRPM = 12;
   currentSteps = 0;
   steps = 0;
@@ -219,10 +215,6 @@ void Motor::columnRP(int v)
 }
 
 void Motor::setRP(int v)
-{
-}
-
-void Motor::VA()
 {
 }
 
