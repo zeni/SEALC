@@ -75,8 +75,8 @@ void displaySelectedMotor()
 void displayIntro()
 {
   Serial.println("*************************************************");
-  Serial.println("* SEALC: System for Electo-Acoustic Live Coding *");
-  Serial.println("* by 23N! - 2018/08                             *");
+  Serial.println("SEALC: System for Electo-Acoustic Live Coding");
+  Serial.println("by S. Shibatsuji-Perrin - 2018/09");
   Serial.print("************************************************<");
 }
 
