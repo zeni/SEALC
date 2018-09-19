@@ -244,6 +244,10 @@ void processCommand(char a)
       case 'A':
         currentCommand = COMMAND_RA; //RA
         break;
+      case 'r':
+      case 'R':
+        currentCommand = COMMAND_RA; //RA
+        break;
       case 'p':
       case 'P':
         currentCommand = COMMAND_RP; //RP

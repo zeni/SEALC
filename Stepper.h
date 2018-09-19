@@ -222,6 +222,7 @@ void Stepper::action()
     RP();
     break;
   case MODE_RA:
+  case MODE_RR:
     RA();
     break;
   case MODE_RW:

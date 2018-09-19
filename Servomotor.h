@@ -93,8 +93,9 @@ void Servomotor::setRR(int v)
   Serial.print(">> move ");
   Serial.print(v);
   Serial.println(" degrees");
-  steps = abs(v) / 360.0 * nSteps;
+  steps = abs(v);
   currentSteps = 0;
+  currentDir = dir;
   mode = MODE_RR;
   timeMS = millis();
 }
@@ -216,6 +217,9 @@ void Servomotor::action()
   {
   case MODE_IDLE:
     deQ();
+    break;
+  case MODE_SD:
+    SD();
     break;
   case MODE_RO:
   case MODE_RP:
