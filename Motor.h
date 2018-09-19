@@ -25,6 +25,8 @@ protected:
   int currentSteps;     // for move/hammer
   int indexSeq;         // current position in sequence
   int lengthSeq;        // length of seq.
+  int currentIndexSeq;  // current position in sequence
+  int currentLengthSeq; // length of seq.
   unsigned long timeMS; // for speed
   int speed;            // en ms
   int speedRPM;         //en RPM
@@ -76,6 +78,8 @@ Motor::Motor()
   sizeQ = 0;
   indexSeq = 0;
   lengthSeq = 0;
+  currentIndexSeq = 0;
+  currentLengthSeq = 0;
   timeMS = millis();
   pause = 1000;
   isPaused = false;

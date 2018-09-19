@@ -5,9 +5,10 @@ class Servomotor : public Motor
   Servo servo;
   int angleMin, angleMax;
   int pin;
-  int angle;        // current angle
-  int seq[MAX_SEQ]; // seq. of angles for beat
-  int angleSeq;     // angle value for seq.
+  int angle;               // current angle
+  int seq[MAX_SEQ];        // seq. of angles for beat
+  int currentSeq[MAX_SEQ]; // seq. of angles for beat
+  int angleSeq;            // angle value for seq.
   void RA();
   void SQ();
   void servoStep();
@@ -48,7 +49,10 @@ Servomotor::Servomotor(int p, int amin, int amax) : Motor()
   servo.write(angleMin);
   angle = servo.read();
   for (int j = 0; j < MAX_SEQ; j++)
+  {
     seq[j] = 0;
+    currentSeq[j] = 0;
+  }
   angleSeq = 0;
   speed = (speedRPM > 0) ? (floor(60.0 / (speedRPM * nSteps) * 1000)) : 0;
 }
@@ -133,7 +137,6 @@ void Servomotor::initSQ()
   angleSeq = 0;
   indexSeq = 0;
   lengthSeq = 0;
-  newBeat = true;
 }
 
 void Servomotor::columnSQ(int v)
@@ -142,34 +145,35 @@ void Servomotor::columnSQ(int v)
   if (angleSeq == 0)
     angleSeq = v;
   else
-  {
-    seq[indexSeq] = v;
-    indexSeq++;
-  }
+    seq[indexSeq++] = v;
 }
 
 void Servomotor::setSQ(int v)
 {
   Serial.print(">> sequence: ");
+  newBeat = true;
   currentDir = dir;
   if (angleSeq == 0)
   {
     angleSeq = v;
+    indexSeq = 0;
     seq[indexSeq] = 1;
     lengthSeq = 1;
   }
   else
   {
-    seq[indexSeq] = v;
-    indexSeq++;
+    seq[indexSeq++] = v;
     lengthSeq = indexSeq;
   }
-  angleSeq = angleSeq / 360.0 * nSteps;
+  currentLengthSeq = lengthSeq;
+  for (int i = 0; i < currentLengthSeq; i++)
+    currentSeq[i] = seq[i];
   indexSeq = 0;
+  currentIndexSeq = 0;
   steps = angleSeq;
   angleSeq = 0;
   currentSteps = 0;
-  for (int i = 0; i < lengthSeq; i++)
+  for (int i = 0; i < currentLengthSeq; i++)
   {
     Serial.print(seq[i]);
     Serial.print("|");
@@ -231,8 +235,6 @@ void Servomotor::action()
   case MODE_ST:
     ST();
     break;
-  case MODE_IDLE:
-    break;
   case MODE_RA:
   case MODE_RR:
     RA();
@@ -251,7 +253,7 @@ void Servomotor::ST()
   Serial.println(">> stop");
   currentSteps = 0;
   angle = servo.read();
-  mode = MODE_ST;
+  mode = MODE_IDLE;
   deQ();
 }
 
@@ -285,7 +287,7 @@ void Servomotor::SQ()
     {
       deQ();
       newBeat = false;
-      int a = floor(indexSeq / 2);
+      int a = floor(currentIndexSeq / 2);
       switch (seq[a])
       {
       case 2:
@@ -299,25 +301,23 @@ void Servomotor::SQ()
     }
     if ((millis() - timeMS) > speed)
     {
+      int a = floor(currentIndexSeq / 2);
       if (currentSteps >= steps)
       {
-        currentDir = 1 - currentDir;
         currentSteps = 0;
-        indexSeq++;
-        if ((indexSeq % 2) == 0)
+        currentIndexSeq++;
+        if (a >= currentLengthSeq)
+          currentIndexSeq = 0;
+        if ((currentIndexSeq % 2) == 0)
           newBeat = true;
-        int a = floor(indexSeq / 2);
-        if (a >= lengthSeq)
-          indexSeq = 0;
+        else
+          currentDir = 1 - currentDir;
       }
       else
       {
-        int a = floor(indexSeq / 2);
         currentSteps++;
         if (seq[a] > 0)
-        {
           servoStep();
-        }
         timeMS = millis();
       }
     }

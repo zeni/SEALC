@@ -4,8 +4,9 @@ class Stepper : public Motor
   int waveDir; // increasing / decreasing speed
   int turns;   // for rotate (0=continuous rotation)
   int realSteps;
-  int seq[MAX_SEQ]; // seq. of angles for beat
-  int angleSeq;     // angle value for seq.
+  int seq[MAX_SEQ];        // seq. of angles for beat
+  int currentSeq[MAX_SEQ]; // seq. of angles for beat
+  int angleSeq;            // angle value for seq.
   void RO();
   void RP();
   void RA();
@@ -49,7 +50,10 @@ Stepper::Stepper(int n, int pin_stp, int pin_dir) : Motor()
   nSteps = n;
   realSteps = currentSteps;
   for (int j = 0; j < MAX_SEQ; j++)
+  {
     seq[j] = 0;
+    currentSeq[j] = 0;
+  }
   angleSeq = 0;
   speed = (speedRPM > 0) ? (floor(60.0 / (speedRPM * nSteps) * 1000)) : 0;
 }
@@ -146,7 +150,6 @@ void Stepper::initSQ()
   angleSeq = 0;
   indexSeq = 0;
   lengthSeq = 0;
-  newBeat = true;
 }
 
 void Stepper::columnSQ(int v)
@@ -155,36 +158,37 @@ void Stepper::columnSQ(int v)
   if (angleSeq == 0)
     angleSeq = v;
   else
-  {
-    seq[indexSeq] = v;
-    indexSeq++;
-  }
+    seq[indexSeq++] = v;
 }
 
 void Stepper::setSQ(int v)
 {
   Serial.print(">> sequence: ");
+  newBeat = true;
   currentDir = dir;
   if (angleSeq == 0)
   {
     angleSeq = v;
+    indexSeq = 0;
     seq[indexSeq] = 1;
     lengthSeq = 1;
   }
   else
   {
-    seq[indexSeq] = v;
-    indexSeq++;
+    seq[indexSeq++] = v;
     lengthSeq = indexSeq;
   }
+  currentLengthSeq = lengthSeq;
+  for (int i = 0; i < currentLengthSeq; i++)
+    currentSeq[i] = seq[i];
   angleSeq = angleSeq / 360.0 * nSteps;
-  indexSeq = 0;
+  currentIndexSeq = 0;
   steps = angleSeq;
   angleSeq = 0;
   currentSteps = 0;
-  for (int i = 0; i < lengthSeq; i++)
+  for (int i = 0; i < currentLengthSeq; i++)
   {
-    Serial.print(seq[i]);
+    Serial.print(currentSeq[i]);
     Serial.print("|");
   }
   Serial.println();
@@ -406,8 +410,8 @@ void Stepper::SQ()
     {
       deQ();
       newBeat = false;
-      int a = floor(indexSeq / 2);
-      switch (seq[a])
+      int a = floor(currentIndexSeq / 2);
+      switch (currentSeq[a])
       {
       case 2:
         currentDir = 1 - dir;
@@ -421,26 +425,28 @@ void Stepper::SQ()
     }
     if ((millis() - timeMS) > speed)
     {
+      int a = floor(currentIndexSeq / 2);
       if (currentSteps >= steps)
       {
-        currentDir = 1 - currentDir;
-        digitalWrite(pinDIR, currentDir);
         currentSteps = 0;
-        indexSeq++;
-        if ((indexSeq % 2) == 0)
+        currentIndexSeq++;
+        if (a >= currentLengthSeq)
+          currentIndexSeq = 0;
+        if ((currentIndexSeq % 2) == 0)
           newBeat = true;
-        int a = floor(indexSeq / 2);
-        if (a >= lengthSeq)
-          indexSeq = 0;
+        else
+          currentDir = 1 - currentDir;
+        digitalWrite(pinDIR, currentDir);
       }
       else
       {
-        int a = floor(indexSeq / 2);
         currentSteps++;
-        if (seq[a] > 0)
+        if (currentSeq[a] > 0)
           stepperStep();
-        timeMS = millis();
+        else
+          digitalWrite(pinSTP, LOW);
       }
+      timeMS = millis();
     }
   }
   else
