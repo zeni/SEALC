@@ -5,13 +5,12 @@ class Vibro : public Motor
     bool isOn;
     int durationSeq[MAX_SEQ];
     int stateSeq[MAX_SEQ];
+    int currentDurationSeq[MAX_SEQ];
+    int currentStateSeq[MAX_SEQ];
     String getType();
     void RO();
     void RP();
-    void RA();
     void SQ();
-    void RW();
-    void initRP();
     void setRP(int v);
     void SD();
     void setSD(int v);
@@ -47,6 +46,8 @@ Vibro::Vibro(int p) : Motor()
     {
         durationSeq[j] = 0;
         stateSeq[j] = 0;
+        currentDurationSeq[j] = 0;
+        currentStateSeq[j] = 0;
     }
 }
 
@@ -77,13 +78,6 @@ void Vibro::setRO(int v)
     timeMS = millis();
 }
 
-void Vibro::initRP()
-{
-    duration = 1000;
-    pause = 1000;
-    isPaused = false;
-}
-
 void Vibro::columnRP(int v)
 {
     duration = (v <= 0) ? 1 : v;
@@ -97,13 +91,6 @@ void Vibro::setRP(int v)
     Serial.println(">> rotate " + String(duration) + "ms and pause " + String(pause) + "ms");
     mode = MODE_RP;
     timeMS = millis();
-}
-
-void Vibro::initSQ()
-{
-    indexSeq = 0;
-    lengthSeq = 0;
-    newBeat = true;
 }
 
 void Vibro::columnSQ(int v)
@@ -124,13 +111,17 @@ void Vibro::columnSQ(int v)
 void Vibro::setSQ(int v)
 {
     Serial.print(">> sequence: ");
+    newBeat = true;
     v = (v <= 0) ? 0 : 1;
     stateSeq[(indexSeq - 1) / 2] = v;
     indexSeq++;
     lengthSeq = indexSeq / 2;
     indexSeq = 0;
-    for (int i = 0; i < lengthSeq; i++)
+    currentLengthSeq = lengthSeq;
+    for (int i = 0; i < currentLengthSeq; i++)
     {
+        currentDurationSeq[i] = durationSeq[i];
+        currentStateSeq[i] = stateSeq[i];
         Serial.print(durationSeq[i]);
         Serial.print(" (");
         Serial.print(stateSeq[i]);
@@ -145,16 +136,19 @@ void Vibro::setSQ(int v)
 void Vibro::setRR(int v)
 {
     Serial.println(">> vibro has no RR command");
+    mode = MODE_IDLE;
 }
 
 void Vibro::setRA(int v)
 {
     Serial.println(">> vibro has no RA command");
+    mode = MODE_IDLE;
 }
 
 void Vibro::setRW(int v)
 {
     Serial.println(">> vibro has no RW command");
+    mode = MODE_IDLE;
 }
 
 void Vibro::action()
@@ -250,16 +244,6 @@ void Vibro::RP()
     }
 }
 
-// rotate a number of steps
-void Vibro::RA()
-{
-}
-
-// continuous wave movement (like rotate but with changing speed)
-void Vibro::RW()
-{
-}
-
 void Vibro::WA()
 {
     if (isPaused)
@@ -284,19 +268,19 @@ void Vibro::SQ()
     if (newBeat)
     {
         deQ();
-        isOn = stateSeq[indexSeq] > 0;
+        isOn = currentStateSeq[currentIndexSeq] > 0;
         if (isOn)
             digitalWrite(pin, HIGH);
         else
             digitalWrite(pin, LOW);
         newBeat = false;
     }
-    if ((millis() - timeMS) > durationSeq[indexSeq])
+    if ((millis() - timeMS) > currentDurationSeq[currentIndexSeq])
     {
         newBeat = true;
-        indexSeq++;
-        if (indexSeq >= lengthSeq)
-            indexSeq = 0;
+        currentIndexSeq++;
+        if (currentIndexSeq >= currentLengthSeq)
+            currentIndexSeq = 0;
         timeMS = millis();
     }
 }

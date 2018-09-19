@@ -247,7 +247,6 @@ void processCommand(char a)
       case 'p':
       case 'P':
         currentCommand = COMMAND_RP; //RP
-        //motors[selectedMotor]->initRP();
         break;
       }
       break;
@@ -280,7 +279,6 @@ void processCommand(char a)
       case 'a':
       case 'A':
         currentCommand = COMMAND_WA; //GS
-        //motors[selectedMotor]->initWA();
         break;
       }
       break;

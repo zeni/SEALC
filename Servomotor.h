@@ -13,7 +13,6 @@ class Servomotor : public Motor
   void SQ();
   void servoStep();
   void moveStep();
-  void initRP();
   void setRO(int v);
   String getType();
   void setSD(int v);
@@ -77,10 +76,6 @@ void Servomotor::setRO(int v)
   mode = MODE_RO;
 }
 
-void Servomotor::initRP()
-{
-}
-
 void Servomotor::columnRP(int v)
 {
 }
@@ -130,13 +125,6 @@ void Servomotor::setRW(int v)
 {
   Serial.println(">> servo has no RW command");
   mode = MODE_RW;
-}
-
-void Servomotor::initSQ()
-{
-  angleSeq = 0;
-  indexSeq = 0;
-  lengthSeq = 0;
 }
 
 void Servomotor::columnSQ(int v)
@@ -316,11 +304,11 @@ void Servomotor::SQ()
       else
       {
         currentSteps++;
-        if (seq[a] > 0)
+        if (currentSeq[a] > 0)
           servoStep();
-        timeMS = millis();
       }
     }
+    timeMS = millis();
   }
   else
   {

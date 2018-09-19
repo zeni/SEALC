@@ -14,7 +14,6 @@ class Stepper : public Motor
   void RW();
   void stepperStep();
   void moveStep();
-  void initRP();
   void setRP(int v);
   void SD();
   void setSD(int v);
@@ -90,13 +89,6 @@ void Stepper::setRO(int v)
   timeMS = millis();
 }
 
-void Stepper::initRP()
-{
-  turns = 1;
-  pause = 1000;
-  isPaused = false;
-}
-
 void Stepper::columnRP(int v)
 {
   turns = (v <= 0) ? 1 : v;
@@ -145,13 +137,6 @@ void Stepper::setRW(int v)
   timeMS = millis();
 }
 
-void Stepper::initSQ()
-{
-  angleSeq = 0;
-  indexSeq = 0;
-  lengthSeq = 0;
-}
-
 void Stepper::columnSQ(int v)
 {
   v = (v <= 0) ? 0 : v;
@@ -180,18 +165,17 @@ void Stepper::setSQ(int v)
   }
   currentLengthSeq = lengthSeq;
   for (int i = 0; i < currentLengthSeq; i++)
+  {
     currentSeq[i] = seq[i];
+    Serial.print(currentSeq[i]);
+    Serial.print("|");
+  }
+  Serial.println();
   angleSeq = angleSeq / 360.0 * nSteps;
   currentIndexSeq = 0;
   steps = angleSeq;
   angleSeq = 0;
   currentSteps = 0;
-  for (int i = 0; i < currentLengthSeq; i++)
-  {
-    Serial.print(currentSeq[i]);
-    Serial.print("|");
-  }
-  Serial.println();
   mode = MODE_SQ;
   timeMS = millis();
 }
@@ -341,9 +325,7 @@ void Stepper::RA()
   if (speed > 0)
   {
     if ((millis() - timeMS) > speed)
-    {
       moveStep();
-    }
   }
   else
   {

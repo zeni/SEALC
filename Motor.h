@@ -47,7 +47,7 @@ public:
   virtual void setRR(int v);
   virtual void setRW(int v);
   void setWA(int v);
-  virtual void initSQ();
+  void initSQ();
   virtual void setSQ(int v);
   virtual void columnSQ(int v);
   virtual void columnRP(int v);
@@ -61,7 +61,6 @@ public:
   void GI(int i);
   void fillQ(int m, int v);
   void deQ();
-  void initWA();
 };
 
 Motor::Motor()
@@ -150,10 +149,10 @@ void Motor::setSD(int v)
 {
 }
 
-void Motor::initWA()
+void Motor::initSQ()
 {
-  pause = 1000;
-  isPaused = false;
+  indexSeq = 0;
+  lengthSeq = 0;
 }
 
 void Motor::setWA(int v)
@@ -198,10 +197,6 @@ void Motor::ST()
 {
 }
 
-void Motor::initSQ()
-{
-}
-
 void Motor::columnSQ(int v)
 {
 }
@@ -228,7 +223,6 @@ void Motor::action()
 
 void Motor::deQ()
 {
-  //Serial.println(modesQ[0]);
   switch (modesQ[0])
   {
   case MODE_IDLE:
@@ -276,7 +270,6 @@ void Motor::deQ()
 void Motor::fillQ(int m, int v)
 {
   modesQ[sizeQ] = m;
-  valuesQ[sizeQ] = v;
-  sizeQ++;
+  valuesQ[sizeQ++] = v;
   sizeQ = (sizeQ > MAX_QUEUE) ? MAX_QUEUE : sizeQ;
 }
