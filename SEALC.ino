@@ -26,24 +26,24 @@
 #define EOL '\n'
 #define COLUMN ':'
 // commands
-#define COMMAND_SELECT 0
-#define COMMAND_SS 1 // Set Speed
-#define COMMAND_SD 2 // Set Direction
-#define COMMAND_RO 3 // ROtate
-#define COMMAND_ST 4 // STop
-#define COMMAND_RA 5 // Rotate Angle (stepper) / Rotate Absolute (servo)
-#define COMMAND_NONE 6
-#define COMMAND_RW 7 // Rotate Wave
-#define COMMAND_SQ 8 // SeQuence
-#define COMMAND_ERROR 9
-#define COMMAND_RP 10 // Rotate Pause
-#define COMMAND_GS 11 // Get Speed
-#define COMMAND_GD 12 // Get Direction
-#define COMMAND_GM 13 // Get Mode
-#define COMMAND_GI 14 // Get Id
-#define COMMAND_SA 15 // Stop All
-#define COMMAND_RR 16 // Rotate Angle (stepper) / Rotate Relative (servo)
-#define COMMAND_WA 17 // WAit command (ms)
+#define COMMAND_SELECT 25
+#define COMMAND_SS 10      // Set Speed
+#define COMMAND_SD MODE_SD // Set Direction
+#define COMMAND_RO MODE_RO // ROtate
+#define COMMAND_ST MODE_ST // STop
+#define COMMAND_RA MODE_RA // Rotate Angle (stepper) / Rotate Absolute (servo)
+#define COMMAND_NONE MODE_IDLE
+#define COMMAND_RW MODE_RW // Rotate Wave
+#define COMMAND_SQ MODE_SQ // SeQuence
+#define COMMAND_ERROR 66
+#define COMMAND_RP MODE_RP // Rotate Pause
+#define COMMAND_GS 20      // Get Speed
+#define COMMAND_GD 21      // Get Direction
+#define COMMAND_GM 22      // Get Mode
+#define COMMAND_GI 23      // Get Id
+#define COMMAND_SA 24      // Stop All
+#define COMMAND_RR MODE_RR // Rotate Angle (stepper) / Rotate Relative (servo)
+#define COMMAND_WA MODE_WA // WAit command (ms)
 // states
 #define STATE_SETUP 0
 #define STATE_READY 1
@@ -139,31 +139,15 @@ void processCommand(char a)
         motors[selectedMotor]->SS(currentValue);
         break;
       case COMMAND_SD:
-        motors[selectedMotor]->fillQ(MODE_SD, currentValue);
-        break;
       case COMMAND_RO:
-        motors[selectedMotor]->fillQ(MODE_RO, currentValue);
-        break;
       case COMMAND_ST:
-        motors[selectedMotor]->fillQ(MODE_ST, currentValue);
-        break;
       case COMMAND_RA:
-        motors[selectedMotor]->fillQ(MODE_RA, currentValue);
-        break;
       case COMMAND_RR:
-        motors[selectedMotor]->fillQ(MODE_RR, currentValue);
-        break;
       case COMMAND_RW:
-        motors[selectedMotor]->fillQ(MODE_RW, currentValue);
-        break;
       case COMMAND_SQ:
-        motors[selectedMotor]->fillQ(MODE_SQ, currentValue);
-        break;
       case COMMAND_RP:
-        motors[selectedMotor]->fillQ(MODE_RP, currentValue);
-        break;
       case COMMAND_WA:
-        motors[selectedMotor]->fillQ(MODE_WA, currentValue);
+        motors[selectedMotor]->fillQ(currentCommand, currentValue);
         break;
       case COMMAND_GS:
         motors[selectedMotor]->GS();
@@ -180,9 +164,7 @@ void processCommand(char a)
         break;
       case COMMAND_SA:
         for (int i = 0; i < nMotors; i++)
-        {
           motors[i]->ST();
-        }
         break;
       case COMMAND_SELECT:
       case COMMAND_ERROR:
@@ -201,88 +183,69 @@ void processCommand(char a)
     currentCommand = COMMAND_ERROR;
     switch (command[0])
     {
-    case 's':
     case 'S':
       switch (command[1])
       {
-      case 's':
       case 'S':
         currentCommand = COMMAND_SS; //SS
         break;
-      case 'd':
       case 'D':
         currentCommand = COMMAND_SD; //SD
         break;
-      case 't':
       case 'T':
         currentCommand = COMMAND_ST; //ST
         break;
-      case 'a':
       case 'A':
         currentCommand = COMMAND_SA; //ST
         break;
-      case 'q':
       case 'Q':
         currentCommand = COMMAND_SQ; //SQ
         motors[selectedMotor]->initSQ();
         break;
       }
       break;
-    case 'r':
     case 'R':
       switch (command[1])
       {
-      case 'o':
       case 'O':
         currentCommand = COMMAND_RO; //RO
         break;
       case 'W':
-      case 'w':
         currentCommand = COMMAND_RW; //RW
         break;
-      case 'a':
       case 'A':
         currentCommand = COMMAND_RA; //RA
         break;
-      case 'r':
       case 'R':
         currentCommand = COMMAND_RA; //RA
         break;
-      case 'p':
       case 'P':
         currentCommand = COMMAND_RP; //RP
         break;
       }
       break;
-    case 'g':
     case 'G':
       switch (command[1])
       {
-      case 's':
       case 'S':
         currentCommand = COMMAND_GS; //GS
         break;
-      case 'd':
       case 'D':
         currentCommand = COMMAND_GD; //GD
         break;
-      case 'm':
       case 'M':
         currentCommand = COMMAND_GM; //GM
         break;
-      case 'i':
       case 'I':
         currentCommand = COMMAND_GI; //GI
         break;
       }
       break;
-    case 'w':
     case 'W':
       switch (command[1])
       {
-      case 'a':
       case 'A':
-        currentCommand = COMMAND_WA; //GS
+        currentCommand = COMMAND_WA; //WA
         break;
       }
       break;

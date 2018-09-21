@@ -72,7 +72,8 @@ void Vibro::setRO(int v)
     else
     {
         duration = v;
-        Serial.println(String(duration) + " ms");
+        Serial.print(duration);
+        Serial.println(" ms");
     }
     mode = MODE_RO;
     timeMS = millis();
@@ -88,7 +89,11 @@ void Vibro::setRP(int v)
     isPaused = false;
     pause = (v <= 0) ? 1000 : v;
     duration = (duration <= 0) ? 1000 : duration;
-    Serial.println(">> rotate " + String(duration) + "ms and pause " + String(pause) + "ms");
+    Serial.print(">> rotate ");
+    Serial.print(duration);
+    Serial.print("ms and pause ");
+    Serial.print(pause);
+    Serial.println("ms");
     mode = MODE_RP;
     timeMS = millis();
 }

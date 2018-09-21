@@ -82,7 +82,8 @@ void Stepper::setRO(int v)
   else
   {
     turns = v;
-    Serial.println(String(turns) + " turn(s)");
+    Serial.print(turns);
+    Serial.println(" turn(s)");
   }
   steps = turns * nSteps;
   mode = MODE_RO;
@@ -100,8 +101,11 @@ void Stepper::setRP(int v)
   pause = (v <= 0) ? 1000 : v;
   turns = (turns <= 0) ? 1 : turns;
   steps = turns * nSteps;
-  Serial.print(">> rotate (with " + String(pause) + "ms pause) ");
-  Serial.println(String(turns) + " turn(s)");
+  Serial.print(">> rotate (with ");
+  Serial.print(pause);
+  Serial.print("ms pause) ");
+  Serial.print(turns);
+  Serial.println(" turn(s)");
   mode = MODE_RP;
   timeMS = millis();
 }
