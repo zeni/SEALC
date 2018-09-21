@@ -1,5 +1,6 @@
 #define MAX_SEQ 10 // max length of sequence for beat
 #define MAX_QUEUE 10
+#define MAX_MOTORS 10
 //  modes
 #define MODE_ST 0
 #define MODE_RO 1

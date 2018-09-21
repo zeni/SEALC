@@ -18,7 +18,6 @@
 #include "Servomotor.h"
 #include "Vibro.h"
 
-#define MAX_MOTORS 10
 // pins
 #define EN 8 // stepper motor enable, low level effective
 // serial commands
@@ -74,7 +73,7 @@ void displaySelectedMotor()
 
 void displayIntro()
 {
-  Serial.println("*************************************************");
+  Serial.println(">************************************************");
   Serial.println("SEALC: System for Electo-Acoustic Live Coding");
   Serial.println("by S. Shibatsuji-Perrin - 2018/09");
   Serial.print("************************************************<");
@@ -349,7 +348,6 @@ void loop()
   switch (state)
   {
   case STATE_READY:
-    // get serial commands
     if (Serial.available())
     {
       char a = Serial.read();
