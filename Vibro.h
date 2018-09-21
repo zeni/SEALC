@@ -80,7 +80,7 @@ void Vibro::setRO(int v)
 
 void Vibro::columnRP(int v)
 {
-    duration = (v <= 0) ? 1 : v;
+    duration = (v <= 0) ? 1000 : v;
 }
 
 void Vibro::setRP(int v)
@@ -118,6 +118,7 @@ void Vibro::setSQ(int v)
     lengthSeq = indexSeq / 2;
     indexSeq = 0;
     currentLengthSeq = lengthSeq;
+    currentIndexSeq = 0;
     for (int i = 0; i < currentLengthSeq; i++)
     {
         currentDurationSeq[i] = durationSeq[i];

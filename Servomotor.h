@@ -116,7 +116,7 @@ void Servomotor::setRA(int v)
     v = angle - v;
     currentDir = 0;
   }
-  steps = v / 360.0 * nSteps;
+  steps = v;
   currentSteps = 0;
   mode = MODE_RA;
   timeMS = millis();
@@ -280,16 +280,7 @@ void Servomotor::SQ()
       deQ();
       newBeat = false;
       int a = floor(currentIndexSeq / 2);
-      switch (seq[a])
-      {
-      case 2:
-        currentDir = 1 - dir;
-        break;
-      case 1:
-      case 0:
-        currentDir = dir;
-        break;
-      }
+      currentDir = (currentSeq[a] < 2) ? dir : (1 - dir);
     }
     if ((millis() - timeMS) > speed)
     {
