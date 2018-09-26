@@ -12,6 +12,7 @@ class Stepper : public Motor
   void RA();
   void SQ();
   void RW();
+  void SS(int v);
   void stepperStep();
   void moveStep();
   void setRP(int v);

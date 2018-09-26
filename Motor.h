@@ -233,8 +233,10 @@ void Motor::deQ()
     setRP(valuesQ[0]);
     break;
   case MODE_RA:
-  case MODE_RR:
     setRA(valuesQ[0]);
+    break;
+  case MODE_RR:
+    setRR(valuesQ[0]);
     break;
   case MODE_RW:
     setRW(valuesQ[0]);

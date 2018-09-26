@@ -8,6 +8,7 @@ class Vibro : public Motor
     int currentDurationSeq[MAX_SEQ];
     int currentStateSeq[MAX_SEQ];
     String getType();
+    void SS(int v);
     void RO();
     void RP();
     void SQ();

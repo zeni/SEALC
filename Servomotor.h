@@ -11,6 +11,7 @@ class Servomotor : public Motor
   int angleSeq;            // angle value for seq.
   void RA();
   void SQ();
+  void SS(int v);
   void servoStep();
   void moveStep();
   void setRO(int v);
@@ -117,7 +118,7 @@ void Servomotor::setRA(int v)
   Serial.println(" degrees");
   if (v > angle)
   {
-    v = v - angle;
+    v -= angle;
     currentDir = 1;
   }
   else
