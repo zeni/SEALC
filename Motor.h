@@ -187,8 +187,8 @@ void Motor::setRW(int v)
 
 void Motor::SS(int v)
 {
-  speedRPM = (v > 0) ? v : 0;
-  speed = (speedRPM > 0) ? (floor(60.0 / (speedRPM * nSteps) * 1000)) : 0;
+  speedRPM = (v > 60000.0 / nSteps) ? floor(60000.0 / nSteps) : v;
+  speed = (speedRPM > 0) ? (floor(60000.0 / (speedRPM * nSteps))) : 0;
   Serial.print(">> speed: ");
   Serial.print(speedRPM);
   Serial.println(" RPM");

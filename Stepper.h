@@ -118,10 +118,10 @@ void Stepper::setRR(int v)
 void Stepper::setRA(int v)
 {
   v = (v <= 0) ? 0 : (v % 360);
-  Serial.print(">> move ");
-  Serial.print(v);
-  Serial.println(" degrees");
   steps = v / 360.0 * nSteps;
+  Serial.print(">> move ");
+  Serial.print(steps * 360.0 / nSteps);
+  Serial.println(" degrees");
   currentSteps = 0;
   mode = MODE_RA;
   timeMS = millis();
@@ -280,7 +280,7 @@ void Stepper::RO()
   else
   {
     ST();
-    Serial.println("Stopped: speed is 0.");
+    Serial.println("RO Stopped: speed is 0.");
   }
 }
 
