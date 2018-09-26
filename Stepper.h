@@ -443,8 +443,8 @@ void Stepper::SQ()
         else
           digitalWrite(pinSTP, LOW);
       }
-      timeMS = millis();
     }
+    timeMS = millis();
   }
   else
   {

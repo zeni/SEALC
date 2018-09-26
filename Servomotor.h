@@ -119,12 +119,12 @@ void Servomotor::setRA(int v)
   if (v > angle)
   {
     v -= angle;
-    currentDir = 1;
+    currentDir = 0;
   }
   else
   {
     v = angle - v;
-    currentDir = 0;
+    currentDir = 1;
   }
   steps = v;
   currentSteps = 0;
@@ -166,18 +166,17 @@ void Servomotor::setSQ(int v)
   }
   currentLengthSeq = lengthSeq;
   for (int i = 0; i < currentLengthSeq; i++)
+  {
     currentSeq[i] = seq[i];
+    Serial.print(currentSeq[i]);
+    Serial.print("|");
+  }
+  Serial.println();
   indexSeq = 0;
   currentIndexSeq = 0;
   steps = angleSeq;
   angleSeq = 0;
   currentSteps = 0;
-  for (int i = 0; i < currentLengthSeq; i++)
-  {
-    Serial.print(seq[i]);
-    Serial.print("|");
-  }
-  Serial.println();
   mode = MODE_SQ;
   timeMS = millis();
 }

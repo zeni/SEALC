@@ -216,7 +216,7 @@ void processCommand(char a)
         currentCommand = COMMAND_RA; //RA
         break;
       case 'R':
-        currentCommand = COMMAND_RA; //RA
+        currentCommand = COMMAND_RR; //RA
         break;
       case 'P':
         currentCommand = COMMAND_RP; //RP
