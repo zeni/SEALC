@@ -62,6 +62,15 @@ String Stepper::getType()
   return " (stepper)";
 }
 
+void Stepper::SS(int v)
+{
+  speedRPM = (v > 60000.0 / nSteps) ? floor(60000.0 / nSteps) : v;
+  speed = (speedRPM > 0) ? (floor(60000.0 / (speedRPM * nSteps))) : 0;
+  Serial.print(">> speed: ");
+  Serial.print(speedRPM);
+  Serial.println(" RPM");
+}
+
 void Stepper::setSD(int v)
 {
   v = (v > 0) ? 1 : v;

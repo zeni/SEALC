@@ -61,6 +61,15 @@ String Servomotor::getType()
   return " (servo)";
 }
 
+void Servomotor::SS(int v)
+{
+  speedRPM = (v > 60000.0 / nSteps) ? floor(60000.0 / nSteps) : v;
+  speed = (speedRPM > 0) ? (floor(60000.0 / (speedRPM * nSteps))) : 0;
+  Serial.print(">> speed: ");
+  Serial.print(speedRPM);
+  Serial.println(" RPM");
+}
+
 void Servomotor::setSD(int v)
 {
   v = (v > 0) ? 1 : v;

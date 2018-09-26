@@ -56,6 +56,11 @@ String Vibro::getType()
     return " (vibro)";
 }
 
+void Vibro::SS(int v)
+{
+    Serial.println(">> vibro has no SS command");
+}
+
 void Vibro::setSD(int v)
 {
     Serial.println(">> vibro has no SD command");

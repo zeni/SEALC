@@ -41,7 +41,7 @@ protected:
 public:
   Motor();
   virtual void initRP();
-  void SS(int v);
+  virtual void SS(int v);
   virtual void setRO(int v);
   virtual void setRP(int v);
   virtual void setRA(int v);
@@ -187,11 +187,6 @@ void Motor::setRW(int v)
 
 void Motor::SS(int v)
 {
-  speedRPM = (v > 60000.0 / nSteps) ? floor(60000.0 / nSteps) : v;
-  speed = (speedRPM > 0) ? (floor(60000.0 / (speedRPM * nSteps))) : 0;
-  Serial.print(">> speed: ");
-  Serial.print(speedRPM);
-  Serial.println(" RPM");
 }
 
 void Motor::ST()
