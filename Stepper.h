@@ -205,9 +205,7 @@ void Stepper::stepperStep()
 void Stepper::moveStep()
 {
   if (currentSteps >= steps)
-  {
     ST();
-  }
   else
   {
     currentSteps++;
@@ -405,20 +403,11 @@ void Stepper::SQ()
   {
     if (newBeat)
     {
-      deQ();
       newBeat = false;
       int a = floor(currentIndexSeq / 2);
-      switch (currentSeq[a])
-      {
-      case 2:
-        currentDir = 1 - dir;
-        break;
-      case 1:
-      case 0:
-        currentDir = dir;
-        break;
-      }
+      currentDir = (currentSeq[a] < 2) ? dir : (1 - dir);
       digitalWrite(pinDIR, currentDir);
+      deQ();
     }
     if ((millis() - timeMS) > speed)
     {
@@ -443,8 +432,8 @@ void Stepper::SQ()
         else
           digitalWrite(pinSTP, LOW);
       }
+      timeMS = millis();
     }
-    timeMS = millis();
   }
   else
   {

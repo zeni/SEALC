@@ -267,7 +267,15 @@ void Motor::deQ()
 
 void Motor::fillQ(int m, int v)
 {
+  if (sizeQ >= MAX_QUEUE)
+  {
+    sizeQ--;
+    for (int i = 0; i < sizeQ; i++)
+    {
+      modesQ[i] = modesQ[i + 1];
+      valuesQ[i] = valuesQ[i + 1];
+    }
+  }
   modesQ[sizeQ] = m;
   valuesQ[sizeQ++] = v;
-  sizeQ = (sizeQ > MAX_QUEUE) ? MAX_QUEUE : sizeQ;
 }

@@ -172,7 +172,7 @@ void Servomotor::setSQ(int v)
     Serial.print("|");
   }
   Serial.println();
-  indexSeq = 0;
+  //indexSeq = 0;
   currentIndexSeq = 0;
   steps = angleSeq;
   angleSeq = 0;
@@ -286,10 +286,10 @@ void Servomotor::SQ()
   {
     if (newBeat)
     {
-      deQ();
       newBeat = false;
       int a = floor(currentIndexSeq / 2);
       currentDir = (currentSeq[a] < 2) ? dir : (1 - dir);
+      deQ();
     }
     if ((millis() - timeMS) > speed)
     {
@@ -311,8 +311,8 @@ void Servomotor::SQ()
         if (currentSeq[a] > 0)
           servoStep();
       }
+      timeMS = millis();
     }
-    timeMS = millis();
   }
   else
   {
