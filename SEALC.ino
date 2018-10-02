@@ -1,5 +1,5 @@
 /****************** PLC = Physical Live Coding ********************
-  Live coding on stepper, servo motors and pots, piezo, hammer, tools,
+  Live coding on stepper, servo steppers and pots, piezo, hammer, tools,
   objects, etc. to create sounds.
 
   By 23N!
@@ -13,11 +13,9 @@
   - Stepper: keep track of zero/origin ?
 *******************************************************************/
 
-#include "Motor.h"
 #include "Stepper.h"
-#include "Servomotor.h"
-#include "Vibro.h"
 
+#define MAX_STEPPERS 21
 // pins
 #define EN 8 // stepper motor enable, low level effective
 // serial commands
@@ -28,47 +26,35 @@
 #define COMMAND_SELECT 25
 #define COMMAND_SS 10      // Set Speed
 #define COMMAND_SD MODE_SD // Set Direction
-#define COMMAND_RO MODE_RO // ROtate
 #define COMMAND_ST MODE_ST // STop
 #define COMMAND_RA MODE_RA // Rotate Angle (stepper) / Rotate Absolute (servo)
 #define COMMAND_NONE MODE_IDLE
-#define COMMAND_RW MODE_RW // Rotate Wave
+#define COMMAND_RW MODE_RW // Rotate Wave => not usable as such !
 #define COMMAND_SQ MODE_SQ // SeQuence
 #define COMMAND_ERROR 66
-#define COMMAND_RP MODE_RP // Rotate Pause
-#define COMMAND_GS 20      // Get Speed
-#define COMMAND_GD 21      // Get Direction
-#define COMMAND_GM 22      // Get Mode
-#define COMMAND_GI 23      // Get Id
 #define COMMAND_SA 24      // Stop All
 #define COMMAND_RR MODE_RR // Rotate Angle (stepper) / Rotate Relative (servo)
 #define COMMAND_WA MODE_WA // WAit command (ms)
 // states
 #define STATE_SETUP 0
 #define STATE_READY 1
-// motor types
-#define TYPE_STEPPER 0
-#define TYPE_SERVO 1
-#define TYPE_VIBRO 2
-#define TYPE_UNKNOWN -1
 
 // vars
-Motor *motors[MAX_MOTORS];
-int selectedMotor;
+Stepper *steppers[MAX_STEPPERS];
+int selectedStepper;
 int currentCommand, currentValue;
 bool firstChar = true;
 char command[2];
 int iCommand;
-int nMotors, iMotors;
+int nSteppers, iSteppers;
 int state;
-int motorType, nMotorArg, iMotorArg;
+int nStepperArg, iStepperArg;
 int args[3];
 
 void displaySelectedMotor()
 {
   Serial.print(">> selected motor: ");
-  Serial.print(selectedMotor);
-  Serial.println(motors[selectedMotor]->getType());
+  Serial.print(selectedStepper);
 }
 
 void displayIntro()
@@ -94,9 +80,9 @@ void processCommand(char a)
     if (firstChar)
     {
       currentCommand = COMMAND_SELECT;
-      selectedMotor = a - 48;
-      if (selectedMotor >= nMotors)
-        selectedMotor = nMotors - 1;
+      selectedStepper = a - 48;
+      if (selectedStepper >= nSteppers)
+        selectedStepper = nSteppers - 1;
       displaySelectedMotor();
       firstChar = false;
     }
@@ -117,10 +103,7 @@ void processCommand(char a)
         switch (currentCommand)
         {
         case COMMAND_SQ:
-          motors[selectedMotor]->columnSQ(currentValue);
-          break;
-        case COMMAND_RP:
-          motors[selectedMotor]->columnRP(currentValue);
+          steppers[selectedStepper]->columnSQ(currentValue);
           break;
         }
       }
@@ -135,35 +118,20 @@ void processCommand(char a)
       switch (currentCommand)
       {
       case COMMAND_SS:
-        motors[selectedMotor]->SS(currentValue);
+        steppers[selectedStepper]->SS(currentValue);
         break;
       case COMMAND_SD:
-      case COMMAND_RO:
       case COMMAND_ST:
       case COMMAND_RA:
       case COMMAND_RR:
       case COMMAND_RW:
       case COMMAND_SQ:
-      case COMMAND_RP:
       case COMMAND_WA:
-        motors[selectedMotor]->fillQ(currentCommand, currentValue);
-        break;
-      case COMMAND_GS:
-        motors[selectedMotor]->GS();
-        break;
-      case COMMAND_GD:
-        motors[selectedMotor]->GD();
-        break;
-      case COMMAND_GM:
-        motors[selectedMotor]->GM();
-        break;
-      case COMMAND_GI:
-        motors[selectedMotor]->GI(selectedMotor);
-        Serial.println(motors[selectedMotor]->getType());
+        steppers[selectedStepper]->fillQ(currentCommand, currentValue);
         break;
       case COMMAND_SA:
-        for (int i = 0; i < nMotors; i++)
-          motors[i]->ST();
+        for (int i = 0; i < nSteppers; i++)
+          steppers[i]->ST();
         break;
       case COMMAND_SELECT:
       case COMMAND_ERROR:
@@ -199,16 +167,13 @@ void processCommand(char a)
         break;
       case 'Q':
         currentCommand = COMMAND_SQ; //SQ
-        motors[selectedMotor]->initSQ();
+        steppers[selectedStepper]->initSQ();
         break;
       }
       break;
     case 'R':
       switch (command[1])
       {
-      case 'O':
-        currentCommand = COMMAND_RO; //RO
-        break;
       case 'W':
         currentCommand = COMMAND_RW; //RW
         break;
@@ -217,26 +182,6 @@ void processCommand(char a)
         break;
       case 'R':
         currentCommand = COMMAND_RR; //RA
-        break;
-      case 'P':
-        currentCommand = COMMAND_RP; //RP
-        break;
-      }
-      break;
-    case 'G':
-      switch (command[1])
-      {
-      case 'S':
-        currentCommand = COMMAND_GS; //GS
-        break;
-      case 'D':
-        currentCommand = COMMAND_GD; //GD
-        break;
-      case 'M':
-        currentCommand = COMMAND_GM; //GM
-        break;
-      case 'I':
-        currentCommand = COMMAND_GI; //GI
         break;
       }
       break;
@@ -269,51 +214,29 @@ void processSetup(char a)
     {
     case EOL:
     case SEPARATOR:
-      if (nMotors == 0)
+      if (nSteppers == 0)
       {
-        nMotors = currentValue;
-        iMotors = 0;
+        nSteppers = currentValue;
+        iSteppers = 0;
         currentValue = -1;
       }
       else
       {
-        if (motorType == TYPE_UNKNOWN)
+        args[iStepperArg++] = currentValue;
+        currentValue = -1;
+        if (iStepperArg == 3)
         {
-          motorType = currentValue;
-          currentValue = -1;
-        }
-        else
-        {
-          args[iMotorArg++] = currentValue;
-          currentValue = -1;
-          if (iMotorArg == 3)
+          steppers[iSteppers] = new Stepper(args[0], args[1], args[2]);
+          iSteppers++;
+          if (iSteppers == nSteppers)
           {
-            switch (motorType)
-            {
-            case TYPE_STEPPER:
-              motors[iMotors] = new Stepper(args[0], args[1], args[2]);
-              break;
-            case TYPE_SERVO:
-              motors[iMotors] = new Servomotor(args[0], args[1], args[2]);
-              break;
-            case TYPE_VIBRO:
-              motors[iMotors] = new Vibro(args[0]);
-              break;
-            }
-            iMotors++;
-            if (iMotors == nMotors)
-            {
-              Serial.println("");
-              displaySelectedMotor();
-              currentCommand = COMMAND_NONE;
-              state = STATE_READY;
-            }
-            else
-            {
-              iMotorArg = 0;
-              motorType = TYPE_UNKNOWN;
-            }
+            Serial.println("");
+            displaySelectedMotor();
+            currentCommand = COMMAND_NONE;
+            state = STATE_READY;
           }
+          else
+            iStepperArg = 0;
         }
       }
       break;
@@ -326,12 +249,11 @@ void processSetup(char a)
 
 void setup()
 {
-  nMotors = 0;
+  nSteppers = 0;
   state = STATE_SETUP;
-  motorType = TYPE_UNKNOWN;
-  nMotorArg = 0;
-  iMotorArg = 0;
-  selectedMotor = 0;
+  nStepperArg = 0;
+  iStepperArg = 0;
+  selectedStepper = 0;
   Serial.begin(115200);
   displayIntro();
   pinMode(EN, OUTPUT);
@@ -353,8 +275,8 @@ void loop()
       char a = Serial.read();
       processCommand(a);
     }
-    for (int i = 0; i < nMotors; i++)
-      motors[i]->action();
+    for (int i = 0; i < nSteppers; i++)
+      steppers[i]->action();
     break;
   case STATE_SETUP:
     if (Serial.available())

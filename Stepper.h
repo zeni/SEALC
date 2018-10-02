@@ -1,5 +1,40 @@
-class Stepper : public Motor
+#define MAX_SEQ 10 // max length of sequence for beat
+#define MAX_QUEUE 10
+//  modes
+#define MODE_ST 0
+#define MODE_RO 1
+#define MODE_RA 2
+#define MODE_RR 3
+#define MODE_RW 4
+#define MODE_SQ 5
+#define MODE_WA 6
+#define MODE_SD 7
+#define MODE_RP 8
+#define MODE_IDLE 9
+
+class Stepper
 {
+  int id;
+  int nSteps;
+  int mode;
+  int steps;     // for move/hammer
+  int stepsHome; // steps for homing
+  int dir;
+  int currentDir;
+  int currentSteps;     // for move/hammer
+  int indexSeq;         // current position in sequence
+  int lengthSeq;        // length of seq.
+  int currentIndexSeq;  // current position in sequence
+  int currentLengthSeq; // length of seq.
+  unsigned long timeMS; // for speed
+  int speed;            // en ms
+  int speedRPM;         //en RPM
+  bool newBeat;
+  int modesQ[MAX_QUEUE];
+  int valuesQ[MAX_QUEUE];
+  int sizeQ;
+  int pause;
+  bool isPaused;
   int pinSTP, pinDIR;
   int waveDir; // increasing / decreasing speed
   int turns;   // for rotate (0=continuous rotation)
@@ -7,41 +42,54 @@ class Stepper : public Motor
   int seq[MAX_SEQ];        // seq. of angles for beat
   int currentSeq[MAX_SEQ]; // seq. of angles for beat
   int angleSeq;            // angle value for seq.
-  void RO();
-  void RP();
+  void setWA(int v);
+  void deQ();
   void RA();
   void SQ();
   void RW();
-  void SS(int v);
   void stepperStep();
   void moveStep();
-  void setRP(int v);
   void SD();
   void setSD(int v);
-  void setRO(int v);
   void setRA(int v);
   void setRR(int v);
   void setRW(int v);
-  void columnRP(int v);
-  void ST();
   void WA();
-  void action();
-  String getType();
-  void initSQ();
   void setSQ(int v);
-  void columnSQ(int v);
 
 public:
   Stepper();
   Stepper(int n, int stp, int dir);
+  void action();
+  void SS(int v);
+  void initSQ();
+  void columnSQ(int v);
+  void fillQ(int m, int v);
+  void ST();
 };
 
-Stepper::Stepper() : Motor()
+Stepper::Stepper()
 {
 }
 
-Stepper::Stepper(int n, int pin_stp, int pin_dir) : Motor()
+Stepper::Stepper(int n, int pin_stp, int pin_dir)
 {
+  mode = MODE_IDLE;
+  speedRPM = 12;
+  currentSteps = 0;
+  steps = 0;
+  stepsHome = steps;
+  dir = 0;
+  currentDir = dir;
+  for (int j = 0; j < MAX_QUEUE; j++)
+    modesQ[j] = MODE_IDLE;
+  sizeQ = 0;
+  indexSeq = 0;
+  lengthSeq = 0;
+  currentIndexSeq = 0;
+  currentLengthSeq = 0;
+  pause = 1000;
+  isPaused = false;
   waveDir = 0;
   pinSTP = pin_stp;
   pinDIR = pin_dir;
@@ -56,11 +104,7 @@ Stepper::Stepper(int n, int pin_stp, int pin_dir) : Motor()
   }
   angleSeq = 0;
   speed = (speedRPM > 0) ? (floor(60.0 / (speedRPM * nSteps) * 1000)) : 0;
-}
-
-String Stepper::getType()
-{
-  return " (stepper)";
+  timeMS = millis();
 }
 
 void Stepper::SS(int v)
@@ -81,42 +125,16 @@ void Stepper::setSD(int v)
   (dir > 0) ? Serial.println("CCW") : Serial.println("CW");
 }
 
-void Stepper::setRO(int v)
-{
-  Serial.print(">> rotate ");
-  if (v <= 0)
-  {
-    turns = 0;
-    Serial.println("continuously");
-  }
-  else
-  {
-    turns = v;
-    Serial.print(turns);
-    Serial.println(" turn(s)");
-  }
-  steps = turns * nSteps;
-  mode = MODE_RO;
-  timeMS = millis();
-}
-
-void Stepper::columnRP(int v)
-{
-  turns = (v <= 0) ? 1 : v;
-}
-
-void Stepper::setRP(int v)
+void Stepper::setWA(int v)
 {
   isPaused = false;
-  pause = (v <= 0) ? 1000 : v;
-  turns = (turns <= 0) ? 1 : turns;
-  steps = turns * nSteps;
-  Serial.print(">> rotate (with ");
+  v = (v < 0) ? 1000 : v;
+  pause = v;
+  Serial.print(">> wait ");
   Serial.print(pause);
-  Serial.print("ms pause) ");
-  Serial.print(turns);
-  Serial.println(" turn(s)");
-  mode = MODE_RP;
+  Serial.println(" ms");
+  pause = v;
+  mode = MODE_WA;
   timeMS = millis();
 }
 
@@ -149,6 +167,12 @@ void Stepper::setRW(int v)
   waveDir = 0;
   mode = MODE_RW;
   timeMS = millis();
+}
+
+void Stepper::initSQ()
+{
+  indexSeq = 0;
+  lengthSeq = 0;
 }
 
 void Stepper::columnSQ(int v)
@@ -227,12 +251,6 @@ void Stepper::action()
   case MODE_SD:
     SD();
     break;
-  case MODE_RO:
-    RO();
-    break;
-  case MODE_RP:
-    RP();
-    break;
   case MODE_RA:
   case MODE_RR:
     RA();
@@ -263,73 +281,6 @@ void Stepper::SD()
   currentDir = dir;
   digitalWrite(pinDIR, dir);
   deQ();
-}
-
-// rotation
-void Stepper::RO()
-{
-  if (speed > 0)
-  {
-    if ((millis() - timeMS) > speed)
-    {
-      if (turns == 0)
-      {
-        currentSteps++;
-        currentSteps %= nSteps;
-        stepperStep();
-        if (currentSteps == 0)
-          deQ();
-        timeMS = millis();
-      }
-      else
-        moveStep();
-    }
-  }
-  else
-  {
-    ST();
-    Serial.println("RO Stopped: speed is 0.");
-  }
-}
-
-// rotation with pause
-void Stepper::RP()
-{
-  if (speed > 0)
-  {
-    if (isPaused)
-    {
-      if ((millis() - timeMS) > pause)
-      {
-        isPaused = false;
-        currentSteps = 0;
-      }
-    }
-    else
-    {
-      if ((millis() - timeMS) > speed)
-      {
-        if (currentSteps >= steps)
-        {
-          isPaused = true;
-          currentSteps = 0;
-          digitalWrite(pinSTP, LOW);
-          deQ();
-        }
-        else
-        {
-          currentSteps++;
-          stepperStep();
-        }
-        timeMS = millis();
-      }
-    }
-  }
-  else
-  {
-    ST();
-    Serial.println("Stopped: speed is 0.");
-  }
 }
 
 // rotate a number of steps
@@ -440,4 +391,61 @@ void Stepper::SQ()
     ST();
     Serial.println("Stopped: speed is 0.");
   }
+}
+
+void Stepper::deQ()
+{
+  switch (modesQ[0])
+  {
+  case MODE_IDLE:
+    break;
+  case MODE_ST:
+    mode = modesQ[0];
+    break;
+  case MODE_RA:
+    setRA(valuesQ[0]);
+    break;
+  case MODE_RR:
+    setRR(valuesQ[0]);
+    break;
+  case MODE_RW:
+    setRW(valuesQ[0]);
+    break;
+  case MODE_SQ:
+    setSQ(valuesQ[0]);
+    break;
+  case MODE_SD:
+    setSD(valuesQ[0]);
+    break;
+  case MODE_WA:
+    setWA(valuesQ[0]);
+    break;
+  }
+  if (modesQ[0] != MODE_IDLE)
+  {
+    for (int i = 1; i < MAX_QUEUE; i++)
+    {
+      modesQ[i - 1] = modesQ[i];
+      valuesQ[i - 1] = valuesQ[i];
+    }
+    modesQ[MAX_QUEUE - 1] = MODE_IDLE;
+    valuesQ[MAX_QUEUE - 1] = -1;
+    sizeQ--;
+    sizeQ = (sizeQ < 0) ? 0 : sizeQ;
+  }
+}
+
+void Stepper::fillQ(int m, int v)
+{
+  if (sizeQ >= MAX_QUEUE)
+  {
+    sizeQ--;
+    for (int i = 0; i < sizeQ; i++)
+    {
+      modesQ[i] = modesQ[i + 1];
+      valuesQ[i] = valuesQ[i + 1];
+    }
+  }
+  modesQ[sizeQ] = m;
+  valuesQ[sizeQ++] = v;
 }
